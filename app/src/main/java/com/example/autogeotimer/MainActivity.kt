@@ -1,54 +1,67 @@
 package com.example.autogeotimer
 
-import android.util.Log
-import android.os.Bundle
-import androidx.compose.*
-import androidx.activity.compose.setContent
-import androidx.activity.enableEdgeToEdge
+//import android.util.Log
 
+import android.os.Bundle
+//import android.os.Build
+
+import android.content.Context
+
+import android.location.Address
+import android.location.Geocoder
+
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
+
+import androidx.compose.ui.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.unit.dp
 import androidx.compose.material3.*
-import androidx.compose.runtime.*
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.Alignment
+import androidx.compose.ui.graphics.Color
+import androidx.compose.foundation.border
+import androidx.compose.foundation.layout.*
+import androidx.compose.material3.ButtonColors
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.tooling.preview.Preview
+
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.ComponentActivity
-import androidx.compose.material3.TextField
-import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.fillMaxWidth
-import com.example.autogeotimer.ui.theme.AutoGeoTimerTheme
+import androidx.activity.compose.setContent
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
 
+//import com.example.autogeotimer.ui.theme.AutoGeoTimerTheme
+import java.io.IOException
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
-            AutoGeoTimerTheme {
-                PostCodeInput {
-                    entered -> Log.d("MainActivity", "Postcode: $entered")
-                }
-            }
+            MyScreen()
+//            AutoGeoTimerTheme {
+//                PostCodeInput {
+//                    entered -> Log.d("MainActivity", "Postcode: $entered")
+//                }
+//            }
         }
     }
 }
 
+@Preview(showBackground = true, name = "Greeting Preview")
 @Composable
 fun PostCodeInput(
     modifier: Modifier = Modifier,
     label: String = "Enter Postcode",
-    onPostcodeEntered: (String) -> Unit
+    onPostcodeEntered: (String) -> Unit = {}
 )  {
     var postcode by remember { mutableStateOf("") }
 
     Column (
         modifier = modifier
             .fillMaxWidth()
-            .padding(16.dp)
+            .padding(16.dp, 100.dp)
     ) {
         TextField(
             value = postcode,
@@ -60,7 +73,15 @@ fun PostCodeInput(
         Spacer(Modifier.height(8.dp))
         Button(
             onClick = { onPostcodeEntered(postcode) },
-            modifier = Modifier.align(Alignment.End)
+            modifier = Modifier
+                .border(width = 2.dp, color = Color.Black)
+                .align(Alignment.End),
+            colors = ButtonColors(
+                containerColor = Color(0xFF06402B),
+                contentColor = Color.White,
+                disabledContainerColor = Color.Gray,
+                disabledContentColor = Color.Red,
+                )
         ) {
             Text("Submit")
         }
@@ -68,137 +89,67 @@ fun PostCodeInput(
     }
 }
 
-//@Composable
-//fun MyScreen() {
-//    PostCodeInput { entered -> Log.d("MyScreen", "Postcode: $entered") }
-//}
+data class Coordinates(val latitude: Double, val longitude: Double)
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-//package com.example.autogeotimer
-//
-//import android.os.Bundle
-//import androidx.activity.ComponentActivity
-//import androidx.activity.compose.setContent
-//import androidx.activity.enableEdgeToEdge
-//import androidx.compose.foundation.layout.*
-//import androidx.compose.material3.*
-//import androidx.compose.runtime.*
-//import androidx.compose.ui.Alignment
-//import androidx.compose.ui.Modifier
-//import androidx.compose.ui.tooling.preview.Preview
-//import androidx.compose.ui.unit.dp
-//import kotlinx.coroutines.delay
-//import com.example.autogeotimer.ui.theme.AutoGeoTimerTheme
-//
-//class MainActivity : ComponentActivity() {
-//    override fun onCreate(savedInstanceState: Bundle?) {
-//        super.onCreate(savedInstanceState)
-//        enableEdgeToEdge()
-//
-//        setContent {
-//            AutoGeoTimerTheme {
-//                // Root of our “two-page” app:
-//                TwoPageApp("Victor")
-//            }
-//        }
-//    }
-//}
-//
-//@Composable
-//fun TwoPageApp(name: String) {
-//    // isLoading = true → show spinner page
-//    // isLoading = false → show button page
-//    var isLoading by remember { mutableStateOf(true) }
-//
-//    // After first composition, wait 5 seconds then switch pages
-//    LaunchedEffect(Unit) {
-//        delay(5_000)
-//        isLoading = false
-//    }
-//
-//    Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-//        Box(
-//            modifier = Modifier
-//                .fillMaxSize()
-//                .padding(innerPadding)
-//        ) {
-//            if (isLoading) {
-//                // Page 1: Spinner in the center
-//                LoadingPage()
+suspend fun postcodeToLocation(
+    context: Context,
+    addressString: String
+): Coordinates? {
+    return withContext(Dispatchers.IO) {
+        val geocoder = Geocoder(context)
+        try {
+            @Suppress("DEPRECATION")
+            val addresses: MutableList<Address>? = geocoder.getFromLocationName(addressString, 1)
+            addresses?.firstOrNull()?.let {
+                Coordinates(it.latitude, it.longitude)
+            }
+//            if (Build .VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
 //            } else {
-//                // Page 2: Button → “Welcome Victor” when clicked
-//                WelcomePage(name = name)
+//                @Suppress("DEPRECATION")
+//                val addresses: MutableList<Address>? = geocoder.getFromLocationName(addressString, 1)
+//                addresses?.firstOrNull()?.let {
+//                    Coordinates(it.latitude, it.longitude)
+//                }
 //            }
-//        }
-//    }
-//}
-//
-//@Composable
-//fun LoadingPage() {
-//    // A full‐screen box with a centered CircularProgressIndicator
-//    Box(
-//        modifier = Modifier.fillMaxSize(),
-//        contentAlignment = Alignment.Center
-//    ) {
-//        CircularProgressIndicator()
-//    }
-//}
-//
-//@Composable
-//fun WelcomePage(name: String) {
-//    // Track whether the welcome message has been shown
-//    var showWelcome by remember { mutableStateOf(false) }
-//
-//    Column(
-//        modifier = Modifier
-//            .fillMaxSize()
-//            .padding(32.dp),
-//        verticalArrangement = Arrangement.Center,
-//        horizontalAlignment = Alignment.CenterHorizontally
-//    ) {
-//        if (!showWelcome) {
-//            Button(onClick = { showWelcome = true }) {
-//                Text(text = "Tap to show welcome")
-//            }
-//        }
-//
-//        if (showWelcome) {
-//            Spacer(modifier = Modifier.height(16.dp))
-//            Text(
-//                text = "Welcome $name",
-//                style = MaterialTheme.typography.headlineMedium
-//            )
-//        }
-//    }
-//}
-//
-//@Preview(showBackground = true)
-//@Composable
-//fun TwoPageAppPreview() {
-//    AutoGeoTimerTheme {
-//        TwoPageApp("Victor")
-//    }
-//}
+        } catch (e: IOException) {
+            println("Geocoding failed for '$addressString': ${e.message}")
+            e.printStackTrace()
+            null
+        } catch (e: IllegalArgumentException) {
+            println("Invalid address format for geocoding '$addressString': ${e.message}")
+            e.printStackTrace()
+            null
+        }
+    }
+}
+
+@Composable
+fun MyScreen() {
+    val context = LocalContext.current
+    var locationResult by remember { mutableStateOf<Coordinates?>(null) }
+    var isLoading by remember { mutableStateOf(false) }
+    val coroutineScope = rememberCoroutineScope()
+
+    Column (modifier = Modifier.padding(16.dp, 100.dp)) {
+        Button(
+            onClick = {
+                isLoading = true
+                coroutineScope.launch {
+                    locationResult = postcodeToLocation(context, "LU3 3QN")
+                    isLoading = false
+                }
+            },
+            modifier = Modifier.padding(16.dp, 100.dp)
+        ) {
+            Text("Find Location")
+        }
+
+        if (isLoading) {
+            Text("Loading...")
+        } else {
+            locationResult?.let {
+                Text("Lat: ${it.latitude}, Lng: ${it.longitude}")
+            } ?: Text("Location not found or error occurred.")
+        }
+    }
+}
