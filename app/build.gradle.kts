@@ -49,6 +49,7 @@ dependencies {
     implementation(libs.androidx.ui.tooling.preview)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(platform(libs.androidx.compose.bom))
+    implementation(libs.androidx.navigation.compose.android)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
@@ -58,15 +59,18 @@ dependencies {
     debugImplementation(libs.androidx.ui.test.manifest)
     implementation("androidx.navigation:navigation-compose:2.7.7")
 
+
 //    New Addition
     implementation("androidx.activity:activity-compose:<version>")
     implementation("androidx.compose.material3:material3:<version>")
 
 //    Latest Addition
-    implementation(platform("androidx.compose:compose-bom:2025.06.00"))
-    implementation("androidx.activity:activity-compose:1.7.2")
     implementation("androidx.compose.ui:ui")
     implementation("androidx.compose.material3:material3")
     implementation("androidx.compose.ui:ui-tooling-preview")
+    implementation("androidx.activity:activity-compose:1.7.2")
+    implementation("androidx.navigation:navigation-compose:2.8.3")
+    implementation(platform("androidx.compose:compose-bom:2025.06.00"))
+    implementation("androidx.navigation:navigation-compose:2.6.0")
     debugImplementation("androidx.compose.ui:ui-tooling")
 }
