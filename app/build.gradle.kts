@@ -57,10 +57,10 @@ dependencies {
     androidTestImplementation(platform(libs.androidx.compose.bom))
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
-    implementation("androidx.navigation:navigation-compose:2.7.7")
 
 
 //    New Addition
+    implementation("androidx.navigation:navigation-compose:2.7.7")
     implementation("androidx.activity:activity-compose:<version>")
     implementation("androidx.compose.material3:material3:<version>")
 
@@ -73,4 +73,10 @@ dependencies {
     implementation(platform("androidx.compose:compose-bom:2025.06.00"))
     implementation("androidx.navigation:navigation-compose:2.6.0")
     debugImplementation("androidx.compose.ui:ui-tooling")
+
+//    Current location Modules
+    implementation("com.google.android.gms:play-services-location:21.3.0")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-play-services:1.7.3")
+
 }
+
