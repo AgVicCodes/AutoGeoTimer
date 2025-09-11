@@ -13,15 +13,15 @@ import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.withContext
 
 
-
-class LocationProvider(private val context: Context) {
+//class LocationProvider(private val context: Context) {
+class LocationProvider(context: Context) {
 
     private val fused = LocationServices.getFusedLocationProviderClient(context)
 
     suspend fun getCurrentLocation(): Result<Coordinates> = withContext(Dispatchers.Main) {
         try {
-            val priority_ = Priority.PRIORITY_HIGH_ACCURACY
-            val location = fused.getCurrentLocation(priority_, CancellationTokenSource().token).await()
+            val priority = Priority.PRIORITY_HIGH_ACCURACY
+            val location = fused.getCurrentLocation(priority, CancellationTokenSource().token).await()
             if (location != null) Result.success(Coordinates(location.latitude, location.longitude))
             else Result.failure(IllegalStateException("No location fix. Ensure GPS is on."))
         }

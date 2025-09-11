@@ -18,7 +18,7 @@ import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.delay
 import com.example.autogeotimer.ui.theme.AutoGeoTimerTheme
 
-class MainActivity : ComponentActivity() {
+class MainActivity1 : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
@@ -84,11 +84,19 @@ fun WelcomePage(name: String) {
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        if (!showWelcome) {
-            Button(onClick = { showWelcome = true }) {
-                Text(text = "Tap to show welcome")
+
+
+        when {
+            showWelcome ->
+                Button(onClick = { showWelcome = false }) {
+                    Text (text = "Hide welcome message")
+                }
+            else ->
+                Button(onClick = { showWelcome = true }) {
+                    Text (text = "Tap to show welcome")
             }
         }
+
 
         if (showWelcome) {
             Spacer(modifier = Modifier.height(16.dp))
@@ -108,53 +116,67 @@ fun TwoPageAppPreview() {
     }
 }
 
-*/
+
+ */
 
 // Grok:
 
-/*
+///*
 
 package com.example.autogeotimer
 
+
+import androidx.compose.ui.graphics.Color
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.compose.animation.core.LinearEasing
+
+import androidx.compose.animation.core.tween
 import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
-import androidx.compose.animation.core.tween
-import androidx.compose.foundation.layout.Arrangement
+
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.material3.Button
-import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.Arrangement
+
 import androidx.compose.material3.Text
+import androidx.compose.material3.Button
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.CircularProgressIndicator
+
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.text.style.TextAlign
+
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.tooling.preview.Preview
+
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+
 import com.example.autogeotimer.ui.theme.AutoGeoTimerTheme
+
 import kotlinx.coroutines.delay
 
-class MainActivity : ComponentActivity() {
+
+class MainActivity2 : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
@@ -202,58 +224,60 @@ fun LoadingScreen(onTimeout: () -> Unit, modifier: Modifier = Modifier) {
     }
 
     Box(
-        modifier = modifier.fillMaxSize(),
+        modifier = modifier.fillMaxSize().background(color = Color(0xFFFFFFFF)),
         contentAlignment = Alignment.Center
     ) {
         CircularProgressIndicator(
             modifier = Modifier
                 .size(60.dp)
                 .graphicsLayer { rotationZ = rotation },
-            strokeWidth = 6.dp
+            strokeWidth = 8.dp
         )
     }
 }
 
+@Preview(showBackground = true)
 @Composable
 fun WelcomeScreen(modifier: Modifier = Modifier) {
     var showMessage by remember { mutableStateOf(false) }
 
     Column(
-        modifier = modifier.fillMaxSize(),
+        modifier = modifier.fillMaxSize().background(color = Color(0xFF171123)),
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Button(
-            onClick = { showMessage = true },
+            onClick = { showMessage = !showMessage },
             modifier = Modifier.padding(16.dp)
         ) {
-            Text("Show Welcome Message")
+            Text(if (showMessage) "Hide Greetings!" else "Show Welcome Message")
         }
         if (showMessage) {
             Text(
                 text = "Welcome Victor!",
                 style = MaterialTheme.typography.headlineMedium,
                 textAlign = TextAlign.Center,
-                modifier = Modifier.padding(16.dp)
+                modifier = Modifier.padding(16.dp),
+                color = Color(0xFFFFFFFF)
             )
         }
     }
 }
 
-@Preview(showBackground = true)
-@Composable
-fun LoadingScreenPreview() {
-    AutoGeoTimerTheme {
-        LoadingScreen(onTimeout = {})
-    }
-}
+//@Preview(showBackground = true)
+//@Composable
+//fun LoadingScreenPreview() {
+//    AutoGeoTimerTheme {
+//        LoadingScreen(onTimeout = {})
+//    }
+//}
+//
+//@Preview(showBackground = true)
+//@Composable
+//fun WelcomeScreenPreview() {
+//    AutoGeoTimerTheme {
+//        WelcomeScreen()
+//    }
+//}
 
-@Preview(showBackground = true)
-@Composable
-fun WelcomeScreenPreview() {
-    AutoGeoTimerTheme {
-        WelcomeScreen()
-    }
-}
-
-*/
+//*/
