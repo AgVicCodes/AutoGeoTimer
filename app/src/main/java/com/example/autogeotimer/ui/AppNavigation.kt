@@ -42,7 +42,10 @@ fun MyAppNavigation() { // Renamed for clarity, could be in your main screen Com
 
         // Pass the navController directly as InputAddress expects
         composable(AppDestinations.INPUT_ADDRESS_SCREEN) { backStackEntry ->
-            InputAddressPage(navController = navController)
+            InputAddressPage(
+                navController = navController,
+                onNavigateBack = { navController.popBackStack() }
+            )
         }
 
         composable(
@@ -65,7 +68,7 @@ fun MyAppNavigation() { // Renamed for clarity, could be in your main screen Com
 
         // Add other composable destinations here
         composable(AppDestinations.USE_LOCATION_SCREEN) { backStackEntry ->
-            TestScreen()
+            TestScreen(onBackNavigation = { navController.popBackStack() })
         }
     }
 }

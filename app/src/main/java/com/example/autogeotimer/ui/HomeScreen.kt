@@ -47,7 +47,8 @@ fun HomeScreen(
     Column(
         modifier.fillMaxSize().background(
             brush = Brush.verticalGradient(
-                colors = listOf(Color(0xFF171123), Color(0xFF33305E))
+                colors = listOf(Color(0xFF0f0f0f), Color(0xFF3d3d3d))
+//                colors = listOf(Color(0xFF171123), Color(0xFF33305E))
             )
         ),
         verticalArrangement = Arrangement.Center,

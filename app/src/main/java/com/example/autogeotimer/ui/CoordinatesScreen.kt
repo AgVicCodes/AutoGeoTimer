@@ -1,5 +1,7 @@
 package com.example.autogeotimer.ui
 
+import android.Manifest
+import android.content.pm.PackageManager
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.Alignment
@@ -31,9 +33,17 @@ import com.example.autogeotimer.domain.Coordinates
 import com.example.autogeotimer.domain.GeocodingResult
 import com.example.autogeotimer.convertPostcodeToAddress
 import com.example.autogeotimer.convertAddressToCoordinates
+import com.example.autogeotimer.data.geofencing.GeoFenceManager
 
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+
+import androidx.core.content.ContextCompat
+import androidx.compose.ui.tooling.preview.Preview
+import androidx.navigation.ActivityNavigatorExtras
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.activity.compose.rememberLauncherForActivityResult
+
 
 @Composable
 fun ShowCoordinatesScreen(
@@ -41,14 +51,17 @@ fun ShowCoordinatesScreen(
     onNavigateBack: () -> Unit
 ) {
     val context = LocalContext.current
-    var locationResult by remember { mutableStateOf<Coordinates?>(null) }
-    var addressString by remember { mutableStateOf<Location?>(null) }
-    var geocodingApiResult by remember { mutableStateOf<GeocodingResult?>(null) }
-    var isLoading by remember { mutableStateOf(true) }
     val coroutineScope = rememberCoroutineScope()
+    var isLoading by remember { mutableStateOf(true) }
+    var geofenceStatus by remember { mutableStateOf("") }
+    var addressString by remember { mutableStateOf<Location?>(null) }
+    var locationResult by remember { mutableStateOf<Coordinates?>(null) }
+    var geocodingApiResult by remember { mutableStateOf<GeocodingResult?>(null) }
 
     // Perform geocoding when the screen is first composed with a postcode
-    LaunchedEffect(key1 = postcode) { // Re-launch if postcode changes (though it won't in this nav setup)
+    LaunchedEffect(key1 = postcode) {
+
+        // Re-launch if postcode changes (though it won't in this nav setup)
 
         isLoading = true
 
@@ -60,7 +73,9 @@ fun ShowCoordinatesScreen(
 
         // geocodingApiResult = convertAddressToCoordinatesDetailed(context, postcode) // Your actual geocoding function
         // --- Placeholder for your geocoding function call ---
+
         delay(1000) // Simulate network delay
+
         if (postcode.equals("error", ignoreCase = true)) {
             geocodingApiResult = GeocodingResult.Error("Simulated geocoding error for '$postcode'")
         } else if (postcode.equals("Not found", ignoreCase = true)) {
@@ -115,10 +130,56 @@ fun ShowCoordinatesScreen(
                 }
             }
         }
+
         Spacer(modifier = Modifier.height(32.dp))
-        Button(onClick = onNavigateBack) {
-            Text("Go Back")
+
+        val permissionLauncher = rememberLauncherForActivityResult(
+            ActivityResultContracts.RequestPermission()
+        ) {
+            granted ->
+            geofenceStatus = if (granted) {
+                "Permission granted. Try again."
+            } else {
+                "Location permission required"
+            }
         }
+        Button(
+            onClick = {
+                // Checking permission
+                if (ContextCompat.checkSelfPermission(
+                        context,
+                        Manifest.permission.ACCESS_FINE_LOCATION
+                    ) != PackageManager.PERMISSION_GRANTED
+                ) {
+                    permissionLauncher.launch(Manifest.permission.ACCESS_FINE_LOCATION)
+                    return@Button
+                }
+
+                locationResult?.let { coords ->
+                    val geoManager = GeoFenceManager(context)
+                    geoManager.add(
+                        id = "place_${System.currentTimeMillis()}",
+                        lat = coords.latitude,
+                        lng = coords.longitude,
+                        radiusM = 150f
+                    ) {
+                        ok, error ->
+                        geofenceStatus = if (ok) "Geofence Added!"
+                                         else "Failed: ${error?.message}"
+                    }
+                } ?: run {
+                    geofenceStatus = "No coordinates available"
+                }
+            }
+        ) {
+            Text("Set Geofence Here")
+        }
+
+        if (geofenceStatus.isNotEmpty()) {
+            Text(geofenceStatus, color = if (geofenceStatus.startsWith("G")) Color.Green else Color.Red)
+        }
+
+        Spacer(modifier = Modifier.height(32.dp))
 
         if (isLoading) {
             Text("Loading...")
@@ -133,6 +194,12 @@ fun ShowCoordinatesScreen(
                 Text("\n")
                 Text("Address: ${it.address}")
             } ?: Text("Address not found")
+        }
+
+        Spacer(modifier = Modifier.height(32.dp))
+
+        Button(onClick = onNavigateBack) {
+            Text("Go Back")
         }
     }
 }

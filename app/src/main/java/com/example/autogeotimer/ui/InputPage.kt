@@ -22,7 +22,8 @@ import com.example.autogeotimer.AppDestinations
 @Composable
 fun InputAddressPage(
     modifier: Modifier = Modifier,
-    navController: NavController
+    navController: NavController,
+    onNavigateBack: () -> Unit
 ) {
 
     var postcodeState by remember { mutableStateOf("") }
@@ -52,6 +53,10 @@ fun InputAddressPage(
                 .fillMaxWidth()
         ) {
             Text("Submit")
+        }
+
+        Button(onClick = onNavigateBack) {
+            Text("Go Back!")
         }
     }
 }

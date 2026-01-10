@@ -33,7 +33,8 @@ fun InputChoice(
         modifier
             .fillMaxSize()
             .fillMaxWidth()
-            .background(color = Color(0xFF171123)),
+            .background(color = Color(0xFF0f0f0f)),
+//            .background(color = Color(0xFF171123)),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {

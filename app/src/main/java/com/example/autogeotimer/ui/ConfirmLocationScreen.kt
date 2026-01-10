@@ -29,21 +29,23 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.mutableStateOf
 import com.example.autogeotimer.domain.Coordinates
 import androidx.compose.material3.SnackbarHostState
-import androidx.compose.ui.tooling.preview.Preview
+import com.example.autogeotimer.data.geofencing.GeoFenceManager
 import com.example.autogeotimer.data.location.LocationProvider
 
-@Preview
+//@Preview
 @Composable
 fun TestScreen(
     modifier: Modifier = Modifier,
+    onBackNavigation: () -> Unit
 ) {
 
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
     val snackbar = remember { SnackbarHostState() }
-
-    var coords by remember { mutableStateOf<Coordinates?>(null) }
     var isLoading by remember { mutableStateOf(false) }
+    var geofenceStatus by remember { mutableStateOf("") }
+    var coords by remember { mutableStateOf<Coordinates?>(null) }
+    val locationResult by remember { mutableStateOf<Coordinates?>(null) }
 
     val launcher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.RequestPermission()
@@ -65,25 +67,63 @@ fun TestScreen(
 
     Scaffold (snackbarHost = { SnackbarHost(snackbar) }) { padding ->
         Column (
-            modifier = modifier.
-            fillMaxSize().
-            padding(padding).
-            padding(16.dp)
+            modifier = modifier
+                .fillMaxSize()
+                .padding(padding)
+                .padding(16.dp)
         ) {
-            Text("Welcome to My Geocoding App")
+
+            Text("You are currently located at:")
+
             Spacer(Modifier.height(12.dp))
+
             Button(onClick = { launcher.launch(Manifest.permission.ACCESS_FINE_LOCATION) }) {
                 when {
                     isLoading -> Text("Retrieving Location...")
                     else -> Text("Use my current location")
                 }
             }
+
             Spacer(Modifier.height(12.dp))
+
+            Button(
+                onClick = {
+                    locationResult?.let { coordinate ->
+                        val geoManager = GeoFenceManager(context)
+                        geoManager.add(
+                            id = "place_${System.currentTimeMillis()}",
+                            lat = coordinate.latitude,
+                            lng = coordinate.longitude,
+                            radiusM = 150f
+                        ) {
+                                ok, error ->
+                            geofenceStatus = if (ok) "Geofence Added!" else "Failed: ${error?.message}"
+                        }
+                    }
+                }
+            ) {
+                Text("Set Geofence Here")
+            }
+
+            if (geofenceStatus.isNotEmpty()) {
+                Text(geofenceStatus)
+            }
+
+            Spacer(modifier = Modifier.height(32.dp))
+
             when {
                 isLoading -> CircularProgressIndicator()
                 coords != null -> Text("Your current location is: \nlatitude:${coords!!.latitude} \nlongitude:${coords!!.longitude}")
                 else -> Text("Tap the button to fetch your location")
             }
+
+            Spacer(Modifier.height(12.dp))
+
+            Button(onClick = onBackNavigation ) {
+                Text("Go Back")
+            }
+
         }
+
     }
 }
