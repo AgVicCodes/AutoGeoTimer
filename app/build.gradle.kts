@@ -1,7 +1,14 @@
+import com.android.build.gradle.internal.utils.isKspPluginApplied
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
+    id("com.google.devtools.ksp") version "2.0.20-1.0.24" // # To Match Kotlin Version
+//    alias(libs.plugins.ksp)
+//    id("com.android.application")
+//    kotlin("android")
+    // kotlin("kapt")
 }
 
 android {
@@ -78,5 +85,7 @@ dependencies {
     implementation("com.google.android.gms:play-services-location:21.3.0")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-play-services:1.7.3")
 
+//    Room Modules
+    implementation("androidx.room:room-ktx:2.6.1")
+    ksp("androidx.room:room-compiler:2.6.1")
 }
-

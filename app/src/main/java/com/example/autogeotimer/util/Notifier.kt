@@ -2,13 +2,15 @@ package com.example.autogeotimer.util
 
 import android.Manifest
 import android.os.Build
+import android.util.Log
 import android.content.Context
-import com.example.autogeotimer.R
 import android.app.NotificationManager
 import android.app.NotificationChannel
-import android.util.Log
-import androidx.core.app.NotificationCompat
+
+import com.example.autogeotimer.R
+
 import androidx.annotation.RequiresPermission
+import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 
 

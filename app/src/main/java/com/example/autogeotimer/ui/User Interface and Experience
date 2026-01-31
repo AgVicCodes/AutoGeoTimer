@@ -1,0 +1,317 @@
+## Suggestions for coloring sheet: Cars, pass: gUnjyr-kexjuf-7, Exodus 12 - 23
+
+## OLD USERS
+
+Old user comes into the app. By default, the app creates sessions for already saved locations.
+
+Old user sees splash screen and has options add new work location and review location timeline.
+
+User can view and export location timeline on a weekly and monthly and yearly timeframe.
+
+Timeline history should have the following columns:
+    - Session_id,
+    - Location_id, (Can be abstracted - A simple join would do)
+    - Location_name,
+    - Time_entered,
+    - Time_left,
+    - Time_spent = Time_left - Time_entered
+
+Add location should prompt ready location input options: Postcode, Address and Current Location
+
+Add Alert after success - "New Location Registered"
+
+## NEW USERS
+
+New users come into the app. Gets a splash screen and also get a add new location or review
+location timeline options which would result to an empty page that has a message
+    - "No location activity found, to get started, register a new location"
+
+## ON THE BACKEND
+
+When either new or old user enters a previously registered geofence or zone, they get a
+notification and ...
+
+You’ve got a few structural mix-ups (wrong files, wrong packages, missing Room bits). Here’s the
+minimal, fixed scaffold to make everything compile and wire up.
+
+0) Gradle (module)
+dependencies {
+  implementation("androidx.room:room-ktx:2.6.1")
+  ksp("androidx.room:room-compiler:2.6.1") // or kapt if you use kapt
+}
+
+1) Entities (Room)
+data/db/entities/SessionEntity.kt
+package com.example.autogeotimer.data.db.entities
+
+import androidx.room.Entity
+import androidx.room.PrimaryKey
+
+@Entity(tableName = "sessions")
+data class SessionEntity(
+    @PrimaryKey(autoGenerate = true) val id: Long = 0,
+    val placeId: String,
+    val enter: Long,
+    val start: Long? = null,
+    val exit: Long? = null
+) {
+    val durationMs: Long? get() = exit?.let { ex -> start?.let { ex - it } }
+}
+
+(Keep your domain model if you like, but Room needs this Entity.)
+
+2) DAO
+data/db/dao/SessionDao.kt
+package com.example.autogeotimer.data.db.dao
+
+import androidx.room.*
+import com.example.autogeotimer.data.db.entities.SessionEntity
+
+@Dao
+interface SessionDao {
+    @Insert
+    suspend fun insert(entity: SessionEntity): Long
+
+    @Query("UPDATE sessions SET start = :start WHERE id = :id")
+    suspend fun updateStart(id: Long, start: Long)
+
+    @Query("UPDATE sessions SET exit = :exit WHERE id = :id")
+    suspend fun updateExit(id: Long, exit: Long)
+
+    @Query("DELETE FROM sessions WHERE id = :id")
+    suspend fun deleteById(id: Long)
+
+    @Query("SELECT * FROM sessions WHERE id = :id LIMIT 1")
+    suspend fun get(id: Long): SessionEntity?
+
+    @Query("""
+        SELECT * FROM sessions
+        WHERE placeId = :placeId AND exit IS NULL
+        ORDER BY enter DESC LIMIT 1
+    """)
+    suspend fun latestOpenForPlace(placeId: String): SessionEntity?
+}
+
+
+Your current data/db/dao/sessiondao.kt wrongly contains a class Session and no Room
+annotations—replace it with the above.
+
+
+3) Database singleton
+data/db/AppDb.kt
+package com.example.autogeotimer.data.db
+
+import android.content.Context
+import androidx.room.Database
+import androidx.room.Room
+import androidx.room.RoomDatabase
+import com.example.autogeotimer.data.db.dao.SessionDao
+import com.example.autogeotimer.data.db.entities.SessionEntity
+
+@Database(entities = [SessionEntity::class], version = 1, exportSchema = true)
+abstract class AppDb : RoomDatabase() {
+    abstract fun sessionDao(): SessionDao
+
+    companion object {
+        @Volatile private var INSTANCE: AppDb? = null
+        fun get(context: Context): AppDb =
+            INSTANCE ?: synchronized(this) {
+                Room.databaseBuilder(context, AppDb::class.java, "autogeotimer.db")
+                    .build().also { INSTANCE = it }
+            }
+    }
+}
+
+
+4) Repository
+data/repo/SessionRepo.kt
+package com.example.autogeotimer.data.repo
+
+import com.example.autogeotimer.data.db.dao.SessionDao
+import com.example.autogeotimer.data.db.entities.SessionEntity
+
+class SessionRepo(private val dao: SessionDao) {
+    suspend fun openPending(placeId: String, enter: Long): Long =
+        dao.insert(SessionEntity(placeId = placeId, enter = enter))
+
+    suspend fun confirmDwell(sessionId: Long, enter: Long, graceMs: Long = 5*60_000) =
+        dao.updateStart(sessionId, enter + graceMs)
+
+    suspend fun close(sessionId: Long, exit: Long) =
+        dao.updateExit(sessionId, exit)
+
+    suspend fun discard(sessionId: Long) =
+        dao.deleteById(sessionId)
+
+    suspend fun latestOpen(placeId: String) =
+        dao.latestOpenForPlace(placeId)
+
+    suspend fun get(id: Long) =
+        dao.get(id)
+}
+
+
+5) Receiver (fix imports, DI, lookups)
+receiver/GeofenceReceiver.kt
+package com.example.autogeotimer.receiver
+
+import android.content.BroadcastReceiver
+import android.content.Context
+import android.content.Intent
+import android.util.Log
+import androidx.core.os.bundleOf
+import androidx.navigation.NavDeepLinkBuilder
+import com.example.autogeotimer.R // <-- your app R, not androidx.navigation.R
+import com.example.autogeotimer.data.db.AppDb
+import com.example.autogeotimer.data.repo.SessionRepo
+import com.example.autogeotimer.util.Notifier
+import com.google.android.gms.location.Geofence
+import com.google.android.gms.location.GeofencingEvent
+import kotlinx.coroutines.runBlocking
+
+class GeofenceReceiver : BroadcastReceiver() {
+    override fun onReceive(context: Context, intent: Intent) {
+        val event = GeofencingEvent.fromIntent(intent) ?: return
+        if (event.hasError()) {
+            Log.e("GeofenceReceiver", "Error: ${event.errorCode}")
+            return
+        }
+
+        val now = System.currentTimeMillis()
+        val placeId = event.triggeringGeofences?.firstOrNull()?.requestId ?: return
+        val repo = SessionRepo(AppDb.get(context).sessionDao())
+
+        when (event.geofenceTransition) {
+            Geofence.GEOFENCE_TRANSITION_ENTER -> {
+                runBlocking { repo.openPending(placeId, now) }
+                Notifier.notify(context, "Entered", "Place: $placeId")
+            }
+            Geofence.GEOFENCE_TRANSITION_DWELL -> {
+                // Confirm dwell on the latest open session
+                val open = runBlocking { repo.latestOpen(placeId) } ?: return
+                runBlocking { repo.confirmDwell(open.id, enter = open.enter) }
+
+                // Deep link to timer screen with sessionId
+                val pending = NavDeepLinkBuilder(context)
+                    .setGraph(R.navigation.nav_graph)        // replace with your nav graph id
+                    .setDestination(R.id.timerScreen)        // replace with your destination id
+                    .setArguments(bundleOf("sessionId" to open.id))
+                    .createPendingIntent()
+
+                Notifier.notify(context, "Timing started", "Tap to view") // (or attach
+                pendingIntent to a notification you build)
+            }
+            Geofence.GEOFENCE_TRANSITION_EXIT -> {
+                val open = runBlocking { repo.latestOpen(placeId) } ?: return
+                runBlocking {
+                    if (open.start == null) repo.discard(open.id) // pass-by
+                    else repo.close(open.id, now)
+                }
+                Notifier.notify(context, "Timing stopped", "Saved duration")
+            }
+        }
+    }
+}
+
+
+Remove androidx.navigation.R import; use your app R. Also add bundleOf import.
+
+
+6) Timer screen + ViewModel (fix duplicates)
+ui/TimerScreen.kt
+package com.example.autogeotimer.ui
+
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
+import androidx.compose.runtime.*
+import androidx.lifecycle.viewmodel.compose.viewModel
+
+@Composable
+fun TimerScreen(sessionId: Long, vm: TimerViewModel = viewModel()) {
+    val ui by vm.state.collectAsState()
+    LaunchedEffect(sessionId) { vm.load(sessionId) }
+
+    LaunchedEffect(ui.start, ui.exit) {
+        while (ui.start != null && ui.exit == null) {
+            kotlinx.coroutines.delay(1000)
+            vm.tick()
+        }
+    }
+
+    Text(text = ui.formattedElapsed, style = MaterialTheme.typography.displayMedium)
+}
+
+ui/TimerViewModel.kt
+package com.example.autogeotimer.ui
+
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import com.example.autogeotimer.data.db.AppDb
+import com.example.autogeotimer.data.repo.SessionRepo
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.launch
+
+class TimerViewModel : ViewModel() {
+    data class Ui(val start: Long? = null, val exit: Long? = null, val elapsedMs: Long = 0) {
+        val formattedElapsed: String
+            get() {
+                val total = if (exit != null && start != null) exit - start else elapsedMs
+                val s = total / 1000
+                return "%02d:%02d:%02d".format(s/3600, (s%3600)/60, s%60)
+            }
+    }
+
+    private val _state = MutableStateFlow(Ui())
+    val state = _state.asStateFlow()
+
+    // You can inject this via DI; for brevity use a late init setter
+    private lateinit var repo: SessionRepo
+    fun setRepo(r: SessionRepo) { repo = r }
+
+    fun load(id: Long) {
+        viewModelScope.launch(Dispatchers.IO) {
+            val ctx = /* obtain app context via a provider/DI; or pass repo from caller */
+            // Better: inject repo from Composable with a factory
+        }
+    }
+
+    fun applySession(start: Long?, exit: Long?) {
+        _state.value = _state.value.copy(start = start, exit = exit)
+    }
+
+    fun tick() {
+        val start = _state.value.start ?: return
+        _state.value = _state.value.copy(elapsedMs = System.currentTimeMillis() - start)
+    }
+}
+
+
+(For production, provide the SessionRepo via DI/Hilt or a ViewModelProvider.Factory and in
+load(sessionId) read the session from DB, then call applySession(start, exit).)
+
+
+7) Common sources of your errors (and the fixes)
+
+
+Unresolved Room annotations → you had no @Entity/@Dao or the file contained the wrong class.
+Fix: use the exact Entity/Dao above and add Room compiler dependency.
+
+
+Wrong packages/imports → androidx.navigation.R is wrong; use your app R. Import bundleOf.
+
+
+Duplicate/incorrect files → data/db/dao/sessiondao.kt had a Session class; replace with the DAO
+interface.
+
+
+Repo construction in receiver → build from AppDb.get(context).sessionDao() (no empty
+string constructor).
+
+
+Timer files duplicated → you pasted TimerScreen code inside TimerViewModel.kt. Split them as shown.
+
+
+Implement these exact files (names + packages). That will resolve the unresolved references and
+give you a compiling baseline to iterate on.

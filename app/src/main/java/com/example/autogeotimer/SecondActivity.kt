@@ -19,7 +19,69 @@
 //import androidx.navigation.compose.rememberNavController
 //
 //import com.example.autogeotimer.AppDestinations
+//package com.example.autogeotimer.ui
+////
+////
+////import android.Manifest
+////import androidx.compose.ui.unit.dp
+////import androidx.compose.ui.Modifier
+////import androidx.compose.ui.platform.LocalContext
+////import androidx.activity.result.contract.ActivityResultContracts
+////import androidx.activity.compose.rememberLauncherForActivityResult
+////
+////import androidx.compose.runtime.remember
+////import androidx.compose.runtime.setValue
+////import androidx.compose.runtime.getValue
+////import androidx.compose.runtime.Composable
+////import androidx.compose.runtime.rememberCoroutineScope
+////
+////import androidx.compose.material3.Button
+////import androidx.compose.material3.Scaffold
+////import androidx.compose.material3.SnackbarHost
+////import androidx.compose.foundation.layout.Column
+////import androidx.compose.foundation.layout.Spacer
+////import androidx.compose.foundation.layout.height
+////import androidx.compose.foundation.layout.padding
+////import androidx.compose.foundation.layout.fillMaxSize
+////import androidx.compose.material3.CircularProgressIndicator
+////
+////import kotlinx.coroutines.launch
+////import androidx.compose.material3.Text
+////import androidx.compose.runtime.mutableStateOf
+////import com.example.autogeotimer.domain.Coordinates
+////import androidx.compose.material3.SnackbarHostState
+////import com.example.autogeotimer.data.location.LocationProvider
 //
+//
+////package com.example.autogeotimer.ui
+////
+////import androidx.compose.foundation.layout.*
+////import androidx.compose.material3.*
+////import androidx.compose.runtime.*
+////import androidx.compose.ui.Alignment
+////import androidx.compose.ui.Modifier
+////import androidx.compose.ui.graphics.Color
+////import androidx.compose.ui.text.font.FontWeight
+////import androidx.compose.ui.tooling.preview.Preview
+////import androidx.compose.ui.unit.dp
+////import androidx.compose.ui.unit.sp
+////import androidx.lifecycle.viewmodel.compose.viewModel
+////import kotlinx.coroutines.delay
+////import kotlin.time.Duration.Companion.seconds
+//package com.example.autogeotimer.ui
+//
+//import androidx.lifecycle.ViewModel
+//import androidx.lifecycle.ViewModelProvider
+//import androidx.lifecycle.viewModelScope
+//
+//import kotlinx.coroutines.launch
+//import kotlinx.coroutines.Dispatchers
+//import kotlinx.coroutines.flow.asStateFlow
+//import kotlinx.coroutines.flow.MutableStateFlow
+//
+//import com.example.autogeotimer.data.repo.SessionRepo
+//import kotlinx.coroutines.flow.update
+
 //@Preview
 //@Composable
 //fun MyAppNavigation() { // Renamed for clarity, could be in your main screen Composable
@@ -83,38 +145,7 @@
 //
 //ConfirmLocationScreen:
 //
-//package com.example.autogeotimer.ui
 //
-//
-//import android.Manifest
-//import androidx.compose.ui.unit.dp
-//import androidx.compose.ui.Modifier
-//import androidx.compose.ui.platform.LocalContext
-//import androidx.activity.result.contract.ActivityResultContracts
-//import androidx.activity.compose.rememberLauncherForActivityResult
-//
-//import androidx.compose.runtime.remember
-//import androidx.compose.runtime.setValue
-//import androidx.compose.runtime.getValue
-//import androidx.compose.runtime.Composable
-//import androidx.compose.runtime.rememberCoroutineScope
-//
-//import androidx.compose.material3.Button
-//import androidx.compose.material3.Scaffold
-//import androidx.compose.material3.SnackbarHost
-//import androidx.compose.foundation.layout.Column
-//import androidx.compose.foundation.layout.Spacer
-//import androidx.compose.foundation.layout.height
-//import androidx.compose.foundation.layout.padding
-//import androidx.compose.foundation.layout.fillMaxSize
-//import androidx.compose.material3.CircularProgressIndicator
-//
-//import kotlinx.coroutines.launch
-//import androidx.compose.material3.Text
-//import androidx.compose.runtime.mutableStateOf
-//import com.example.autogeotimer.domain.Coordinates
-//import androidx.compose.material3.SnackbarHostState
-//import com.example.autogeotimer.data.location.LocationProvider
 //
 ////@Preview
 //@Composable
@@ -984,3 +1015,189 @@
 //        }
 //    }
 //}
+
+//
+////@Preview(showBackground = true)
+//
+//data class TimerUi(
+//    val startMs: Long? = null,      // Initially null until Dwell confirmed
+//    val exitMs: Long? = null,
+//    val isRunning: Boolean = true,
+//    val elapsed: Long = 0L,         // UI counter
+//    val isDwelling: Boolean = false // sets to true once startMs is set
+//)
+//
+//@Preview
+//@Composable
+//fun TimerScreen (
+//    ui: TimerUi,
+//    onToggleRunning: () -> Unit,
+//    modifier: Modifier = Modifier
+//) {
+//
+//    val ui by vm.state.collectAsState()
+//
+//    var isRunning by remember { mutableStateOf(true) }
+//    var isDwelling by remember { mutableStateOf(false) }
+//    var elapsedSeconds by remember { mutableLongStateOf(0L) }
+//    var status by remember { mutableStateOf("Waiting for confirmation...") }
+//
+//    LaunchedEffect(sessionId) { vm.load(sessionId) }
+//
+//    // Timer effect
+//    LaunchedEffect(isRunning) {
+//        while (isRunning) {
+//            delay(1.seconds)
+//            elapsedSeconds++
+//
+//            // Auto-confirm dwelling after 5 minutes
+//            if (elapsedSeconds >= 300 && !isDwelling) {
+//                isDwelling = true
+//                status = "✓ Stay confirmed - Timer active"
+//            }
+//        }
+//    }
+//
+//    Column(
+//        modifier = Modifier
+//            .fillMaxSize()
+//            .padding(24.dp),
+//        horizontalAlignment = Alignment.CenterHorizontally,
+//        verticalArrangement = Arrangement.Center
+//    ) {
+////        Text(
+////            text = placeName,
+////            style = MaterialTheme.typography.headlineMedium,
+////            fontWeight = FontWeight.Bold
+////        )
+//
+//        Spacer(Modifier.height(8.dp))
+//
+//        Text(
+//            text = status,
+//            style = MaterialTheme.typography.bodyLarge,
+//            color = if (isDwelling) Color.Green else Color.Gray
+//        )
+//
+//        Spacer(Modifier.height(32.dp))
+//
+//        // Timer display
+//        Text(
+//            text = formatTime(elapsedSeconds),
+//            fontSize = 64.sp,
+//            fontWeight = FontWeight.Bold,
+//            color = if (isDwelling) MaterialTheme.colorScheme.primary else Color.Gray
+//        )
+//
+//        Spacer(Modifier.height(16.dp))
+//
+//        // Progress indicator for first 5 minutes
+//        if (!isDwelling) {
+//            LinearProgressIndicator(
+//                progress = (elapsedSeconds / 300f).coerceIn(0f, 1f),
+//                modifier = Modifier
+//                    .fillMaxWidth()
+//                    .height(8.dp)
+//            )
+//            Text(
+//                text = "${300 - elapsedSeconds}s until confirmed",
+//                style = MaterialTheme.typography.bodySmall,
+//                color = Color.Gray,
+//                modifier = Modifier.padding(top = 4.dp)
+//            )
+//        }
+//
+//        Spacer(Modifier.height(48.dp))
+//
+//        // Controls
+//        Row(
+//            horizontalArrangement = Arrangement.spacedBy(16.dp)
+//        ) {
+//            Button(
+//                onClick = { isRunning = !isRunning },
+//                colors = ButtonDefaults.buttonColors(
+//                    containerColor = if (isRunning) Color.Red else Color.Green
+//                )
+//            ) {
+//                Text(if (isRunning) "Pause" else "Resume")
+//            }
+//
+////            OutlinedButton(onClick = onNavigateBack) {
+////                Text("End Session")
+////            }
+//        }
+//
+//        Spacer(Modifier.height(32.dp))
+//
+//        // Debug info
+//        Card(
+//            modifier = Modifier.fillMaxWidth(),
+//            colors = CardDefaults.cardColors(
+//                containerColor = MaterialTheme.colorScheme.surfaceVariant
+//            )
+//        ) {
+//            Column(Modifier.padding(16.dp)) {
+////                Text("Place ID: $placeId", style = MaterialTheme.typography.bodySmall)
+//                Text("Status: ${if (isRunning) "Active" else "Paused"}",
+//                    style = MaterialTheme.typography.bodySmall)
+//                Text("Dwelling: ${if (isDwelling) "Yes" else "No (${elapsedSeconds}/300s)"}",
+//                    style = MaterialTheme.typography.bodySmall)
+//            }
+//        }
+//    }
+//}
+//
+//private fun formatTime(seconds: Long): String {
+//    val hours = seconds / 3600
+//    val minutes = (seconds % 3600) / 60
+//    val secs = seconds % 60
+//    return "%02d:%02d:%02d".format(hours, minutes, secs)
+//}
+
+//private fun formatTime(s: Long): String {
+//    val h = s / 3600; val m = (s % 3600) / 60; val sec = s % 60
+//    return "%02d:%02d:%02d".format(h, m, sec)
+//}
+
+//
+//
+//class TimerViewModel() : ViewModel() {
+//    data class Ui(val start: Long? = null, val exit: Long? = null, val elapsedMs: Long = 0) {
+//        val formattedElapsed: String
+//            get() {
+//                val total = if (exit != null && start != null) exit - start else elapsedMs
+//                val s = total / 1000
+//                return "%02d:%02d:%02d".format(s / 3600, (s % 3600) / 60, s % 60)
+//            }
+//    }
+//
+//    private val _state = MutableStateFlow(Ui())
+//    val state = _state.asStateFlow()
+//
+//    private lateinit var repo: SessionRepo
+//    fun setRepo(r: SessionRepo) { repo = r }
+//
+//    // (For production, provide the SessionRepo via DI/Hilt or a ViewModelProvider.Factory
+//    // and in load(sessionId) read the session from DB, then call applySession(start, exit).)
+//
+//    fun tick() {
+//        val start = _state.value.start ?: return
+//        _state.value = _state.value.copy(elapsedMs = System.currentTimeMillis() - start)
+//    }
+//
+//    fun load(id: Long) = viewModelScope.launch(Dispatchers.IO) {
+//        val s = repo.get(id) ?: return@launch
+//        _state.update { it.copy(start = s.start, exit = s.exit) }
+//        // viewModelScope.launch(Dispatchers.IO) {
+//        //     val ctx = coroutineContext
+//        // }
+//    }
+//
+//    fun applySession(start: Long?, exit: Long?) {
+//        _state.value = _state.value.copy(start = start, exit = exit)
+//    }
+//}
+//
+////class TimerVmFactory(private val repo: SessionRepo) : ViewModelProvider.Factory {
+////    override fun <T : ViewModel> create(c: Class<T>): T = TimerViewModel(repo) as T
+////}

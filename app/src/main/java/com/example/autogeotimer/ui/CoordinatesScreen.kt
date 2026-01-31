@@ -43,16 +43,22 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.navigation.ActivityNavigatorExtras
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.runtime.mutableLongStateOf
+import androidx.navigation.NavController
+import com.example.autogeotimer.AppDestinations
 
 
 @Composable
 fun ShowCoordinatesScreen(
     postcode: String,
+    navController: NavController,
     onNavigateBack: () -> Unit
 ) {
     val context = LocalContext.current
     val coroutineScope = rememberCoroutineScope()
     var isLoading by remember { mutableStateOf(true) }
+    var sessionId by remember { mutableLongStateOf(0L) }
     var geofenceStatus by remember { mutableStateOf("") }
     var addressString by remember { mutableStateOf<Location?>(null) }
     var locationResult by remember { mutableStateOf<Coordinates?>(null) }
@@ -194,6 +200,17 @@ fun ShowCoordinatesScreen(
                 Text("\n")
                 Text("Address: ${it.address}")
             } ?: Text("Address not found")
+        }
+
+        Spacer(modifier = Modifier.height(32.dp))
+
+        Button(
+            onClick = {
+                sessionId = System.currentTimeMillis()
+                navController.navigate("${AppDestinations.TIMER_SCREEN}/$sessionId")
+            }
+        ) {
+            Text("Go to timer screen")
         }
 
         Spacer(modifier = Modifier.height(32.dp))

@@ -31,6 +31,7 @@ import com.example.autogeotimer.domain.Coordinates
 import androidx.compose.material3.SnackbarHostState
 import com.example.autogeotimer.data.geofencing.GeoFenceManager
 import com.example.autogeotimer.data.location.LocationProvider
+import com.example.autogeotimer.receiver.GeofenceReceiver
 
 //@Preview
 @Composable
