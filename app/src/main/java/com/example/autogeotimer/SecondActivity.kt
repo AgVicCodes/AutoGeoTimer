@@ -1,3 +1,9 @@
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.Text
+import androidx.compose.ui.graphics.Color
+
 //import com.example.autogeotimer.ui.HomeScreen
 //import com.example.autogeotimer.ui.InputAddressPage
 //import com.example.autogeotimer.ui.InputChoice
@@ -1201,3 +1207,64 @@
 ////class TimerVmFactory(private val repo: SessionRepo) : ViewModelProvider.Factory {
 ////    override fun <T : ViewModel> create(c: Class<T>): T = TimerViewModel(repo) as T
 ////}
+
+// // Creating space-between elements:
+//Row (
+//modifier = Modifier.fillMaxWidth(),
+//horizontalArrangement = Arrangement.SpaceBetween
+//// horizontalArrangement = Arrangement.spacedBy(8.dp)
+//) {
+//    Button(
+//        onClick = { isRunning = !isRunning },
+////                modifier = Modifier
+////                    .weight(1f),
+//        colors = ButtonDefaults.buttonColors(
+//            containerColor = if (isRunning) Color.Red else Color(0XFF237D1F)
+//        )
+//    ) {
+//        Text(if (isRunning) "Pause" else "Resume")
+//    }
+//
+//    OutlinedButton(
+//        onClick = onNavigateBack,
+////                modifier = Modifier.weight(1f)
+//    ) {
+//        Text("End Session")
+//    }
+//}
+
+//val enterTime = prefs.getLong(KEY_ENTER_TIME + locationId, 0L)
+//val isDwelling = prefs.getBoolean(KEY_DWELLING + locationId, false)
+//val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+
+// // Save enter time: Old code
+//prefs.edit()
+//    .putLong(KEY_ENTER_TIME + locationId, System.currentTimeMillis())
+//    .putBoolean(KEY_DWELLING + locationId, false)
+//    .apply()
+
+// // New format
+// prefs.edit {
+//     putLong(KEY_ENTER_TIME + locationId, System.currentTimeMillis())
+//         .putBoolean(KEY_DWELLING + locationId, false)
+//         .apply()
+// }
+// // Mark as dwelling - stay confirmed.
+// prefs.edit {
+//     putBoolean(KEY_DWELLING + locationId, true)
+//         .apply()
+// }
+
+// val sharedViewModel: SharedViewModel = viewModel() // Or however you get your ViewModel
+
+//    // Use the NavHost from androidx.navigation.compose.NavHost
+//    NavHost(navController = navController, startDestination = AppDestinations.INPUT_ADDRESS_SCREEN) {
+//        // 'this' inlocation_ide this lambda is a NavGraphBuilder
+//
+//        // Pass the navController directly as InputAddress expects
+//        composable(AppDestinations.INPUT_ADDRESS_SCREEN) { backStackEntry ->
+//            InputAddressPage(navController = navController)
+//        }
+//
+//    MK42 6HF
+// Use the NavHost from androidx.navigation.compose.NavHost

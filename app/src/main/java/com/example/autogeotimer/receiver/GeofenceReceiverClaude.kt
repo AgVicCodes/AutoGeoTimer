@@ -1,15 +1,29 @@
 package com.example.autogeotimer.receiver
 
-import android.content.BroadcastReceiver
+
 import android.util.Log
+
 import android.content.Intent
 import android.content.Context
-import androidx.core.content.ContextCompat
+import android.content.BroadcastReceiver
+
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.CoroutineScope
+
 import androidx.core.content.edit
-import com.example.autogeotimer.MainActivity
-import com.example.autogeotimer.util.Notifier
+import androidx.core.content.ContextCompat
+import androidx.core.util.TimeUtils.formatDuration
+
 import com.google.android.gms.location.Geofence
 import com.google.android.gms.location.GeofencingEvent
+
+import com.example.autogeotimer.MainActivity
+import com.example.autogeotimer.util.Notifier
+import com.example.autogeotimer.data.db.AppDb
+import com.example.autogeotimer.data.db.dao.LocationDao
+import com.example.autogeotimer.data.repo.SessionRepository
 
 class GeofenceReceiverClaude : BroadcastReceiver() {
 
@@ -19,6 +33,8 @@ class GeofenceReceiverClaude : BroadcastReceiver() {
         private const val KEY_ENTER_TIME = "enter_time_"
         private const val KEY_DWELLING = "is_dwelling_"
     }
+
+    private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 
     override fun onReceive(context: Context, intent: Intent) {
         val event = GeofencingEvent.fromIntent(intent) ?: return
@@ -31,110 +47,114 @@ class GeofenceReceiverClaude : BroadcastReceiver() {
         val transition = event.geofenceTransition
         val geofences =  event.triggeringGeofences ?: return
 
+        val db = AppDb.getInstance(context)
+        val sessionRepo = SessionRepository(db.sessionDao())
+        val locationDao = db.locationDao()
+
         geofences.forEach { geofence ->
-            handleTransition(context, geofence.requestId, transition)
+            scope.launch {
+                handleTransition(context, geofence.requestId, transition, sessionRepo, locationDao)
+            }
         }
     }
 
-    private fun handleTransition(context: Context, placeId: String, transition: Int) {
-        val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
-        val enterTime = prefs.getLong(KEY_ENTER_TIME + placeId, 0L)
-        val isDwelling = prefs.getBoolean(KEY_DWELLING + placeId, false)
+    private suspend fun handleTransition(
+        context: Context,
+        locationId: String,
+        transition: Int,
+        sessionRepo: SessionRepository,
+        locationDao: LocationDao
+    ) {
+        val location = locationDao.getById(locationId)
+        val locationName = location?.name ?: "Unknown Location"
 
         when (transition) {
             Geofence.GEOFENCE_TRANSITION_ENTER -> {
-                Log.i(TAG, "ENTER: $placeId")
-
-                // // Save enter time: Old code
-                //prefs.edit()
-                //    .putLong(KEY_ENTER_TIME + placeId, System.currentTimeMillis())
-                //    .putBoolean(KEY_DWELLING + placeId, false)
-                //    .apply()
-
-                // New format
-                prefs.edit {
-                    putLong(KEY_ENTER_TIME + placeId, System.currentTimeMillis())
-                        .putBoolean(KEY_DWELLING + placeId, false)
-                        .apply()
-                }
+                Log.i(TAG, "ENTER: $locationId ($locationName)")
 
                 Notifier.notify(
                     context,
-                    "Entered Location",
+                    "Entered $locationName",
                     "Wait 5 min to confirm stay"
                 )
 
-                // Uncomment \/
-                launchTimerActivity(context, placeId, "Location")
-
+                launchTimerActivity(context, locationId, locationName)
             }
 
             Geofence.GEOFENCE_TRANSITION_DWELL -> {
-                Log.i(TAG, "DWELL: $placeId")
-
-                // Mark as dwelling - stay confirmed.
-                prefs.edit {
-                    putBoolean(KEY_DWELLING + placeId, true)
-                        .apply()
-                }
+                Log.i(TAG, "Dwell Confirmed: $locationId ($locationName)")
 
                 Notifier.notify(
                     context,
-                    "Stay Confirmed",
-                    "Stayed over 5 minutes, timing started"
+                    "Stay Confirmed at $locationName",
+                    "Stayed over 5 minutes, timing now active"
                 )
 
                 // TODO: Update session on Room DB to mark dwelling confirmed
             }
 
             Geofence.GEOFENCE_TRANSITION_EXIT -> {
-                Log.i(TAG, "EXIT: $placeId")
+                Log.i(TAG, "EXIT: $locationId ($locationName)")
 
-                if (!isDwelling) {
-                    val durationMs = System.currentTimeMillis() - enterTime
+                val exitTime = System.currentTimeMillis()
+
+                // Get active session to check if dwelling was confirmed
+                val activeSessions = sessionRepo.getLocationSession(locationId)
+                val lastSession = activeSessions.firstOrNull { it.exitTime == null }
+
+                if (lastSession?.dwellConfirmed == false) {
                     // Change to 60000
-                    val durationMin = durationMs / 60_000
-
+                    val durationMin = (exitTime - lastSession.enterTime) / 60000
                     // Less than 5 minutes stay
                     Log.i(TAG, "Pass-by detected: $durationMin minutes")
 
                     Notifier.notify(
                         context,
-                        "Quick visit",
+                        "Quick visit to $locationName",
                         "You left after $durationMin minutes. Stay wasn't tracked!"
                     )
+                    sessionRepo.endSession(locationId, exitTime)
                 } else {
-                    val durationMs = System.currentTimeMillis() - enterTime
+                    // Normal exit after dwelling
+                    sessionRepo.endSession(locationId, exitTime)
+
                     // Change to 60000
-                    val durationMin = durationMs / 60_000
+                    val durationMin = lastSession?.let {
+                        (exitTime - it.enterTime) / 60000
+                    } ?: 0
 
                     Log.i(TAG, "Session over: lasting $durationMin minutes")
 
                     Notifier.notify(
                         context,
-                        "Session ended",
-                        "Total time: $durationMin minutes"
+                        "Left $locationName",
+                        "Session ended! Total time: ${formatTime(durationMin)} minutes"
                     )
-
                     // TODO: Close session in Room DB with exit time
                 }
 
                 // Mark as exit.
                 // TODO: Check if this correct or to remove periods (.)
-                prefs.edit {
-                    remove(KEY_ENTER_TIME + placeId)
-                        .remove(KEY_DWELLING + placeId)
-                        .apply()
-                }
+//                prefs.edit {
+//                    remove(KEY_ENTER_TIME + locationId)
+//                        .remove(KEY_DWELLING + locationId)
+//                        .apply()
+//                }
             }
         }
     }
 
-    private fun launchTimerActivity(context: Context, placeId: String, placeName: String) {
-        // Uncomment
-        val intent = Intent(context, MainActivity::class.java).apply{
-            putExtra("PLACE_ID", placeId)
-            putExtra("PLACE_NAME", placeName)
+    private fun formatTime(minutes: Long): String {
+        val hours = minutes / 60
+        val minutes = minutes % 60
+        return if (hours > 0) "${hours}h ${minutes}m" else "${minutes}m"
+    }
+
+    private fun launchTimerActivity(context: Context, locationId: String, locationName: String) {
+        // Uncomment and change to TimerActivity
+        val intent = Intent(context, MainActivity::class.java).apply {
+            putExtra("PLACE_ID", locationId)
+            putExtra("PLACE_NAME", locationName)
             addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
         }
         ContextCompat.startActivity(context, intent, null)

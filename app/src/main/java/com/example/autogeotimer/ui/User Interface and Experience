@@ -30,6 +30,15 @@ location timeline options which would result to an empty page that has a message
 
 When either new or old user enters a previously registered geofence or zone, they get a
 notification and ...
+"if you ever stop feeling like coding change your theme"
+
+Is this good programming advice applicable in other aspects of life and what is the original source of this statement?
+
+// TODO: New Option to add hyper parameters (Modify Parameters like Radius, Weekly Time Limit...)
+
+Add a function to delay start till specific start time if you get to work place too early as part
+of the modifiable parameters.
+
 
 You’ve got a few structural mix-ups (wrong files, wrong packages, missing Room bits). Here’s the
 minimal, fixed scaffold to make everything compile and wire up.
@@ -101,9 +110,9 @@ annotations—replace it with the above.
 data/db/AppDb.kt
 package com.example.autogeotimer.data.db
 
-import android.content.Context
-import androidx.room.Database
 import androidx.room.Room
+import androidx.room.Database
+import android.content.Context
 import androidx.room.RoomDatabase
 import com.example.autogeotimer.data.db.dao.SessionDao
 import com.example.autogeotimer.data.db.entities.SessionEntity

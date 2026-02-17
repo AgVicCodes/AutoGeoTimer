@@ -29,9 +29,9 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.mutableStateOf
 import com.example.autogeotimer.domain.Coordinates
 import androidx.compose.material3.SnackbarHostState
-import com.example.autogeotimer.data.geofencing.GeoFenceManager
 import com.example.autogeotimer.data.location.LocationProvider
-import com.example.autogeotimer.receiver.GeofenceReceiver
+import com.example.autogeotimer.receiver.GeofenceReceiverClaude
+import com.example.autogeotimer.data.geofencing.GeofenceManagerClaude
 
 //@Preview
 @Composable
@@ -90,7 +90,7 @@ fun TestScreen(
             Button(
                 onClick = {
                     locationResult?.let { coordinate ->
-                        val geoManager = GeoFenceManager(context)
+                        val geoManager = GeofenceManagerClaude(context)
                         geoManager.add(
                             id = "place_${System.currentTimeMillis()}",
                             lat = coordinate.latitude,

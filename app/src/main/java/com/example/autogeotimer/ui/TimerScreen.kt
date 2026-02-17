@@ -15,11 +15,13 @@ import kotlinx.coroutines.delay
 
 
 data class TimerUi(
-    val exitMs: Long? = null,
+    val locationName: String = "",
     val startMs: Long? = null,      // Initially null until Dwell confirmed
+    val exitMs: Long? = null,
+    val isDwelling: Boolean = false, // sets to true once startMs is set
     val elapsedSec: Long = 0L,      // UI counter
     val isRunning: Boolean = true,
-    val isDwelling: Boolean = false // sets to true once startMs is set
+    val error: String? = null
 )
 
 
@@ -44,14 +46,14 @@ fun TimerScreenPreview() {
 
 // ViewModel-driven screen (real app)
 @Composable
-fun TimerScreen(
-    sessionId: Long,
+fun TimerScreenOld(
+    locationId: String,
     vm: TimerViewModel
 ) {
     val ui by vm.state.collectAsState()
 
     // Load session (start=enter+5min) once
-    LaunchedEffect(sessionId) { vm.load(sessionId) }
+    LaunchedEffect(locationId) { vm.load(locationId, locationName = "Place") }
 
     // Tick while running and not exited
     LaunchedEffect(ui.isRunning, ui.startMs, ui.exitMs) {
@@ -63,7 +65,7 @@ fun TimerScreen(
 
     TimerContent(
         ui = ui,
-        onToggleRunning = { vm.toggleRunning() }
+        onToggleRunning = { vm.tick() }
     )
 }
 

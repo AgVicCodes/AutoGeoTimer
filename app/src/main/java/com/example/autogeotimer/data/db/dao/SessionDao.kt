@@ -3,30 +3,76 @@ package com.example.autogeotimer.data.db.dao
 import androidx.room.Dao
 import androidx.room.Query
 import androidx.room.Insert
-import com.example.autogeotimer.data.db.entities.SessionEntity
+import androidx.room.Update
+import com.example.autogeotimer.data.db.entities.Session
 
 @Dao
 interface SessionDao {
     @Insert
-    suspend fun insert(entity: SessionEntity): Long
+    suspend fun insert(session: Session): Long
 
-    @Query("UPDATE sessions SET start = :start WHERE id = :id")
-    suspend fun updateStart(id: Long, start: Long)
-
-    @Query("UPDATE sessions SET exit = :exit WHERE id = :id")
-    suspend fun updateExit(id: Long, exit: Long)
-
-    @Query("DELETE FROM sessions WHERE id = :id")
-    suspend fun deleteById(id: Long)
+    @Update
+    suspend fun update(session: Session)
 
     @Query("SELECT * FROM sessions WHERE id = :id")
-    suspend fun get(id: Long): SessionEntity?
+    suspend fun getById(id: Long): Session?
+
+    @Query("SELECT * FROM sessions ORDER BY enterTime DESC LIMIT :limit")
+    suspend fun getRecent(limit: Int = 50): List<Session>
 
     @Query("""
         SELECT * FROM sessions 
-        WHERE placeId = :placeId 
-        AND exit IS NULL 
-        ORDER BY enter DESC LIMIT 1
+        WHERE locationId = :locationId 
+        ORDER BY enterTime DESC
     """)
-    suspend fun latestOpenForPlace(placeId: String): SessionEntity?
+    suspend fun getByLocation(locationId: String): List<Session>
+
+    @Query("""
+        SELECT * FROM sessions
+        WHERE enterTime >= :startTime
+        AND enterTime <= :endTime
+        ORDER BY enterTime DESC
+    """)
+    suspend fun getInRange(startTime: Long, endTime: Long): List<Session>
+
+    @Query("""
+        SELECT * FROM sessions 
+        WHERE exitTime IS NULL
+    """)
+    suspend fun getActiveSessions(): List<Session>
+
+    @Query("""
+        UPDATE sessions
+        SET dwellConfirmed = 1
+        WHERE locationId  = :locationId
+        AND exitTime IS NULL
+    """)
+    suspend fun markDwelling(locationId: String)
+
+    @Query("""
+        UPDATE sessions
+        SET dwellConfirmed = 0, 
+            exitTime = :exitTime, 
+            durationSeconds = :durationSeconds
+        WHERE locationId = :locationId
+    """)
+    suspend fun closeSession(locationId: String, exitTime: Long, durationSeconds: Long)
+
+    @Query("UPDATE sessions SET enterTime = :start WHERE locationId = :locationId")
+    suspend fun updateStart(locationId: String, start: Long)
+
+    @Query("UPDATE sessions SET exitTime = :exitTime WHERE locationId = :locationId")
+    suspend fun updateExit(locationId: String, exitTime: Long)
+
+    // User's shouldn't be able to delete sessions
+    // @Query("DELETE FROM sessions WHERE id = :id")
+    // suspend fun deleteById(id: Long)
+
+    @Query("""
+        SELECT * FROM sessions 
+        WHERE locationId = :locationId 
+        AND exitTime IS NULL 
+        ORDER BY enterTime DESC LIMIT 1
+    """)
+    suspend fun latestOpenForPlace(locationId: String): Session?
 }

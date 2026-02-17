@@ -32,8 +32,14 @@
             </intent-filter>
         </activity>
 
+<!--        <activity-->
+<!--            android:name=".TimerActivity"-->
+<!--            android:exported="false"-->
+<!--            android:launchMode="singleTop"-->
+<!--        />-->
+
         <receiver
-            android:name=".receiver.GeofenceReceiver"
+            android:name=".receiver.GeofenceReceiverClaude"
             android:enabled="true"
             android:exported="false" />
 

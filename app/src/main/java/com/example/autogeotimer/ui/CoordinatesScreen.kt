@@ -2,11 +2,13 @@ package com.example.autogeotimer.ui
 
 import android.Manifest
 import android.content.pm.PackageManager
+
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.tooling.preview.Preview
 
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.getValue
@@ -14,6 +16,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.rememberCoroutineScope
 
 import androidx.compose.foundation.layout.Column
@@ -22,31 +25,31 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.fillMaxWidth
 
 import androidx.compose.material3.Text
 import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.CircularProgressIndicator
 
+import androidx.core.content.ContextCompat
+
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.activity.compose.rememberLauncherForActivityResult
+
 import com.example.autogeotimer.Location
+import com.example.autogeotimer.AppDestinations
 import com.example.autogeotimer.domain.Coordinates
 import com.example.autogeotimer.domain.GeocodingResult
 import com.example.autogeotimer.convertPostcodeToAddress
 import com.example.autogeotimer.convertAddressToCoordinates
-import com.example.autogeotimer.data.geofencing.GeoFenceManager
+import com.example.autogeotimer.data.geofencing.GeofenceManagerClaude
 
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
-import androidx.core.content.ContextCompat
-import androidx.compose.ui.tooling.preview.Preview
-import androidx.navigation.ActivityNavigatorExtras
-import androidx.activity.result.contract.ActivityResultContracts
-import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.runtime.mutableLongStateOf
 import androidx.navigation.NavController
-import com.example.autogeotimer.AppDestinations
+import androidx.navigation.ActivityNavigatorExtras
 
 
 @Composable
@@ -162,7 +165,7 @@ fun ShowCoordinatesScreen(
                 }
 
                 locationResult?.let { coords ->
-                    val geoManager = GeoFenceManager(context)
+                    val geoManager = GeofenceManagerClaude(context)
                     geoManager.add(
                         id = "place_${System.currentTimeMillis()}",
                         lat = coords.latitude,
