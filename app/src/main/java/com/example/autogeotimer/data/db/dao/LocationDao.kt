@@ -28,5 +28,6 @@ interface LocationDao {
     @Delete
     suspend fun delete(location: Location)
 
-    companion object
+    // // Uncommented for the room update error
+    // companion object
 }

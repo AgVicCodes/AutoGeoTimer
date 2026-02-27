@@ -1,4 +1,7 @@
+// IMPORTANT: Not a screen in app
+
 package com.example.autogeotimer.ui
+
 
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.Column
@@ -25,15 +28,28 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.tooling.preview.Preview
+import com.example.autogeotimer.data.geocoding.GeocodingService
 
-import com.example.autogeotimer.Location
+import com.example.autogeotimer.domain.Location
 import com.example.autogeotimer.domain.Coordinates
 import com.example.autogeotimer.domain.GeocodingResult
-import com.example.autogeotimer.convertPostcodeToAddress
-import com.example.autogeotimer.convertAddressToCoordinates
+import com.example.autogeotimer.util.*
+import com.google.android.gms.location.CurrentLocationRequest
 
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+
+@Preview(showBackground = true)
+@Composable
+fun CurrentLocationScreenPreview() {
+    MaterialTheme {
+        CurrentLocationScreen(
+            postcode = "LU3 2TN",
+            onNavigateBack = {}
+        )
+    }
+}
 
 @Composable
 fun CurrentLocationScreen(
@@ -78,8 +94,8 @@ fun CurrentLocationScreen(
             onClick = {
                 isLoading = true
                 coroutineScope.launch {
-                    locationResult = convertAddressToCoordinates(context, postcode)
-                    addressString = convertPostcodeToAddress(context, postcode)
+                    locationResult = GeocodingService.convertAddressToCoordinates(postcode)
+                    addressString = GeocodingService.convertPostcodeToAddress(postcode)
                     isLoading = false
                 }
             },

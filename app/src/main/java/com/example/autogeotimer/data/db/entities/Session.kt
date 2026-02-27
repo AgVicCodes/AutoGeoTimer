@@ -23,9 +23,7 @@ data class Session (
     val id: Long = 0,
     val locationId: String,
     val enterTime: Long,
-    // I had to uncomment for compatibility with TimerVM
-    val dwellConfirmed : Boolean = false, // set at DWELL (true after enter + 5min)
+    val dwellConfirmed : Boolean = false, // I had to uncomment for compatibility with TimerVM // set at DWELL (true after enter + 5min)
     val exitTime: Long? = null,
-    // Calculated on exit
-    val durationSeconds: Long? = null // get() = exit?.let { ex -> start?.let { ex - it } }.
+    val durationSeconds: Long? = null // Calculated on exit // get() = exit?.let { ex -> start?.let { ex - it } }.
 )

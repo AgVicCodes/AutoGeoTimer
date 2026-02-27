@@ -37,6 +37,7 @@ class SessionRepository (private val sessionDao: SessionDao) {
     suspend fun openPending(locationId: String, enter: Long): Long =
         sessionDao.insert(Session(locationId = locationId, enterTime = enter))
 
+}
     // suspend fun latestOpen(placeId: String) =
     //    sessionDao.latestOpenForPlace(placeId)
 
@@ -55,4 +56,3 @@ class SessionRepository (private val sessionDao: SessionDao) {
     // Shouldn't delete sessions
     // suspend fun get(id: Long) =
     //     sessionDao.get(id)
-}

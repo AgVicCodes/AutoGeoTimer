@@ -19,8 +19,6 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.navigation.NavController
-import com.example.autogeotimer.AppDestinations
-
 
 @Composable
 fun InputChoice(
@@ -52,6 +50,10 @@ fun InputChoice(
         Button(
             onClick = { navController.navigate(AppDestinations.USE_LOCATION_SCREEN) }) {
             Text("Use Current Location")
+        }
+        Button(
+            onClick = { navController.navigate(AppDestinations.HISTORY_SCREEN) }) {
+            Text("See History")
         }
     }
 }

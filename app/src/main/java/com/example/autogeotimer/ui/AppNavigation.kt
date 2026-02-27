@@ -13,8 +13,8 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navDeepLink
+import androidx.navigation.navigation
 
-import com.example.autogeotimer.AppDestinations
 import com.example.autogeotimer.data.db.AppDb
 import com.example.autogeotimer.data.repo.SessionRepository
 import java.util.Timer
@@ -25,7 +25,7 @@ fun MyAppNavigation() { // Renamed for clarity, could be in your main screen Com
     val navController = rememberNavController()
 
     NavHost(navController = navController, startDestination = AppDestinations.HOME_SCREEN) {
-        // 'this' inlocation_ide this lambda is a NavGraphBuilder
+        // 'this' in_location_ide this lambda is a NavGraphBuilder
 
         // Pass the navController directly as InputAddress expects
         composable(AppDestinations.HOME_SCREEN) { backStackEntry ->
@@ -59,7 +59,7 @@ fun MyAppNavigation() { // Renamed for clarity, could be in your main screen Com
             // Ensure postcode is not null, though navArgument nullable = false helps
             ShowCoordinatesScreen(
                 postcode = receivedPostcode,
-                navController = navController,
+//                navController = navController,
                 onNavigateBack = { navController.popBackStack() }
                 // sharedViewModel = sharedViewModel
             )
@@ -67,7 +67,10 @@ fun MyAppNavigation() { // Renamed for clarity, could be in your main screen Com
 
         // Add other composable destinations here
         composable(AppDestinations.USE_LOCATION_SCREEN) { backStackEntry ->
-            TestScreen(onBackNavigation = { navController.popBackStack() })
+            ConfirmLocationScreen(
+                onBackNavigation = { navController.popBackStack() },
+                navController = navController
+            )
         }
 
         composable(
@@ -84,27 +87,22 @@ fun MyAppNavigation() { // Renamed for clarity, could be in your main screen Com
         ) { backStackEntry ->
 
             // Getting Arguments
-            val locationId: String = backStackEntry.arguments?.getString(
-                "locationId"
-            ) ?: return@composable
-            val locationName: String = backStackEntry.arguments?.getString(
-                "locationName"
-            ) ?: "Unknown Location"
-
-            val context = LocalContext.current
-            val repo = remember { SessionRepository(AppDb.getInstance(context).sessionDao()) }
-
-            val vm: TimerViewModel = viewModel (
-                backStackEntry,
-                factory = TimerVmFactory(repo, locationId)
-            )
-
-//            val locationId: String = backStackEntry.arguments?.getString("locationId") ?: return@composable
-//            val locationName = "locationName"
+            val locationId: String = backStackEntry.arguments?.getString("locationId")
+                ?: return@composable
+            val locationName: String = backStackEntry.arguments?.getString("locationName")
+                ?: "Unknown Location"
 
             TimerScreen(
                 locationId = locationId,
                 placeName = locationName,
+                onNavigateBack = { navController.popBackStack() }
+            )
+        }
+
+        composable(
+            route = AppDestinations.HISTORY_SCREEN
+        ) {
+            GeofenceHistoryScreen(
                 onNavigateBack = { navController.popBackStack() }
             )
         }

@@ -35,10 +35,7 @@ interface SessionDao {
     """)
     suspend fun getInRange(startTime: Long, endTime: Long): List<Session>
 
-    @Query("""
-        SELECT * FROM sessions 
-        WHERE exitTime IS NULL
-    """)
+    @Query("SELECT * FROM sessions WHERE exitTime IS NULL")
     suspend fun getActiveSessions(): List<Session>
 
     @Query("""
@@ -49,12 +46,15 @@ interface SessionDao {
     """)
     suspend fun markDwelling(locationId: String)
 
+    // Might have to remove set dwellConfirmed = 0
+    // from the list of set later for room update error fix
     @Query("""
         UPDATE sessions
         SET dwellConfirmed = 0, 
             exitTime = :exitTime, 
             durationSeconds = :durationSeconds
-        WHERE locationId = :locationId
+        WHERE locationId = :locationId 
+        AND exitTime IS NULL
     """)
     suspend fun closeSession(locationId: String, exitTime: Long, durationSeconds: Long)
 

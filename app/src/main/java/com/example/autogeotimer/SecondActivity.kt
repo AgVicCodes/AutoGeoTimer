@@ -1,8 +1,8 @@
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.Text
-import androidx.compose.ui.graphics.Color
+//import androidx.compose.material3.Button
+//import androidx.compose.material3.ButtonDefaults
+//import androidx.compose.material3.OutlinedButton
+//import androidx.compose.material3.Text
+//import androidx.compose.ui.graphics.Color
 
 //import com.example.autogeotimer.ui.HomeScreen
 //import com.example.autogeotimer.ui.InputAddressPage
@@ -1006,7 +1006,7 @@ import androidx.compose.ui.graphics.Color
 //            Geofence.GEOFENCE_TRANSITION_ENTER -> {
 //                Log.i("GeofenceReceiver", "ENTER: $ids")
 //                Notifier.notify(context, "Entered geofence", "IDs: $ids")
-////                TODO: open session (Later persist to room)
+////                open session (Later persist to room)
 //            }
 //            Geofence.GEOFENCE_TRANSITION_DWELL -> {
 //                Log.i("GeofenceReceiver", "DWELL: $ids")
@@ -1015,7 +1015,7 @@ import androidx.compose.ui.graphics.Color
 //            Geofence.GEOFENCE_TRANSITION_EXIT  -> {
 //                Log.i("GeofenceReceiver", "EXIT: $ids")
 //                Notifier.notify(context, "Exited geofence", "IDs: $ids")
-////                TODO: open session (Later persist to room)
+////                open session (Later persist to room)
 //            }
 //            else -> Log.w("GeofenceReceiver", "Unknown transition: $transition")
 //        }
@@ -1268,3 +1268,156 @@ import androidx.compose.ui.graphics.Color
 //
 //    MK42 6HF
 // Use the NavHost from androidx.navigation.compose.NavHost
+
+
+
+//  coroutineScope.launch {
+//     locationResult = convertPostcodeToCoordinates(context, postcode)
+//     addressString = convertPostcodeToAddress(context, postcode)
+//     isLoading = false
+//  }
+
+// geocodingApiResult = convertAddressToCoordinatesDetailed(context, postcode) // Your actual geocoding function
+// --- Placeholder for your geocoding function call ---
+
+// delay(1000) // Simulate network delay
+//    Column (
+//        Modifier
+//            .fillMaxSize()
+//            .padding(16.dp, 48.dp),
+//        verticalArrangement = Arrangement.Center,
+//        horizontalAlignment = Alignment.CenterHorizontally
+//    ) {
+//        Text("Showing Coordinates for: $postcode", style = MaterialTheme.typography.headlineSmall)
+//        Spacer(modifier = Modifier.height(8.dp))
+//        Button (
+//            onClick = {
+//                isLoading = true
+//                coroutineScope.launch {
+//                    locationResult = convertPostcodeToCoordinates(context, postcode)
+//                    addressString = convertPostcodeToAddress(context, postcode)
+//                    isLoading = false
+//                }
+//            },
+//            Modifier.padding(0.dp, 8.dp)
+//        ) {
+//            Text("Convert Address")
+//        }
+//
+//        // Relaunch and change coordinates to correct results after
+//        if (isLoading) {
+//            CircularProgressIndicator(color = Color(0xFF6F009D))
+//        } else {
+//            when (val result = geocodingApiResult) {
+//                is GeocodingResult.Success -> {
+//                    Text("Latitude: ${result.coordinates.latitude}")
+//                    Text("Longitude: ${(result.coordinates.longitude)}")
+//                }
+//                is GeocodingResult.Error -> {
+//                    Text("Error: ${result.message}", color = MaterialTheme.colorScheme.error)
+//                }
+//                is GeocodingResult.NotFound -> {
+//                    Text("Address not found by geocoder.", color = MaterialTheme.colorScheme.error)
+//                }
+//                null -> {
+//                    Text("Geocoding result not yet available.") // Should not happen if isLoading is handled
+//                }
+//            }
+//        }
+//
+//        Spacer(modifier = Modifier.height(32.dp))
+//
+//        val permissionLauncher = rememberLauncherForActivityResult(
+//            ActivityResultContracts.RequestPermission()
+//        ) {
+//            granted ->
+//            geofenceStatus = if (granted) {
+//                "Permission granted. Try again."
+//            } else {
+//                "Location permission required"
+//            }
+//        }
+//        Button(
+//            onClick = {
+//                // Checking permission
+//                if (ContextCompat.checkSelfPermission(
+//                        context,
+//                        Manifest.permission.ACCESS_FINE_LOCATION
+//                    ) != PackageManager.PERMISSION_GRANTED
+//                ) {
+//                    permissionLauncher.launch(Manifest.permission.ACCESS_FINE_LOCATION)
+//                    return@Button
+//                }
+//
+//                locationResult?.let { coords ->
+//                    val geoManager = GeofenceManagerClaude(context)
+//                    geoManager.add(
+//                        id = "place_${System.currentTimeMillis()}",
+//                        lat = coords.latitude,
+//                        lng = coords.longitude,
+//                        radiusM = 150f
+//                    ) {
+//                        ok, error ->
+//                        geofenceStatus = if (ok) "Geofence Added!"
+//                                         else "Failed: ${error?.message}"
+//                    }
+//                } ?: run {
+//                    geofenceStatus = "No coordinates available"
+//                }
+//            }
+//        ) {
+//            Text("Set Geofence Here")
+//        }
+//
+//        if (geofenceStatus.isNotEmpty()) {
+//            Text(geofenceStatus, color = if (geofenceStatus.startsWith("G")) Color.Green else Color.Red)
+//        }
+//
+//        Spacer(modifier = Modifier.height(32.dp))
+//
+//        if (isLoading) {
+//            Text("Loading...")
+//        } else {
+//            locationResult?.let {
+//                Text("Main Logic:")
+//                Text("Latitude: ${it.latitude}")
+//                Text("Longitude: ${it.longitude}")
+//            } ?: Text("Coordinates couldn't be obtained")
+//
+//            addressString?.let {
+//                Text("\n")
+//                Text("Address: ${it.address}")
+//            } ?: Text("Address not found")
+//        }
+//
+//        Spacer(modifier = Modifier.height(32.dp))
+//
+//        Button(
+//            onClick = {
+//                val locationName = "Work"
+//                var locationId = System.currentTimeMillis()
+//                navController.navigate("${AppDestinations.TIMER_SCREEN}/$locationId/$locationName")
+//            }
+//        ) {
+//            Text("Go to timer screen")
+//        }
+//
+//        Spacer(modifier = Modifier.height(32.dp))
+//
+//        Button(onClick = onNavigateBack) {
+//            Text("Go Back")
+//        }
+//    }
+
+
+//    var isRunning: Boolean by remember { mutableStateOf(false) }
+//    var isDwelling: Boolean by remember { mutableStateOf(false) }
+//    var elapsedSec: Long by remember { mutableLongStateOf(135L) }
+//    var status: String by remember { mutableStateOf("Waiting for confirmation...") }
+//            elapsedSec++
+//
+//            // Auto-confirm dwelling after 5 minutes
+//            if (state.elapsedSec >= 300 && !isDwelling) {
+//                isDwelling = true
+//                status = "Stay confirmed - Timer active"
+//            }

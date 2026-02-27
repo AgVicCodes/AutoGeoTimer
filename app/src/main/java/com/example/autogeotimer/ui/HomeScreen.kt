@@ -21,13 +21,23 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.tooling.preview.Preview
 
 import androidx.navigation.NavController
-
-import com.example.autogeotimer.AppDestinations
+import androidx.navigation.compose.rememberNavController
 
 import kotlinx.coroutines.delay
+import kotlin.coroutines.coroutineContext
 
+
+@Preview
+@Composable
+fun HomeScreenPreview() {
+
+    var navController = rememberNavController()
+
+    HomeScreen(navController = navController)
+}
 
 @Composable
 fun HomeScreen(

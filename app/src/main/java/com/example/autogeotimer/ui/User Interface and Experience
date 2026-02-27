@@ -34,6 +34,7 @@ notification and ...
 
 Is this good programming advice applicable in other aspects of life and what is the original source of this statement?
 
+// TODO: Add a third option on home screen: view current session (If no session: empty session page)
 // TODO: New Option to add hyper parameters (Modify Parameters like Radius, Weekly Time Limit...)
 
 Add a function to delay start till specific start time if you get to work place too early as part

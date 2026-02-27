@@ -9,7 +9,7 @@ import com.example.autogeotimer.data.db.dao.LocationDao
 import com.example.autogeotimer.data.db.entities.Session
 import com.example.autogeotimer.data.db.entities.Location
 
-@Database(entities = [Session::class, Location::class], version = 1, exportSchema = false)
+@Database(entities = [Session::class, Location::class], version = 3, exportSchema = false)
 abstract class AppDb: RoomDatabase() {
     abstract fun sessionDao(): SessionDao
     abstract fun locationDao(): LocationDao
@@ -23,12 +23,21 @@ abstract class AppDb: RoomDatabase() {
                 val instance = Room.databaseBuilder(
                     context.applicationContext,
                     AppDb::class.java,
-                    "autogeotimer.db"
+                    "autogeotimer_db"
+                    // TODO: Speed up migration to production
                     // Make sure to remove 👇🏽in production
                 ).fallbackToDestructiveMigration().build()
 
                 INSTANCE = instance
                 instance
+            }
+        }
+
+        fun clearInstance(context: Context) {
+            synchronized(this) {
+                INSTANCE?.close()
+                context.deleteDatabase("autogeotimer_db")
+                INSTANCE = null
             }
         }
 

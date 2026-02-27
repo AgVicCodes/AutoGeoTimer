@@ -7,25 +7,40 @@ import android.content.Context
 
 import android.location.Address
 import android.location.Geocoder
+import android.util.Log
 
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 
 import androidx.compose.material3.MaterialTheme
+import com.example.autogeotimer.data.db.AppDb
+import com.example.autogeotimer.data.geofencing.GeofenceManagerClaude
 
 import com.example.autogeotimer.domain.Coordinates
+import com.example.autogeotimer.domain.Location
 import com.example.autogeotimer.ui.MyAppNavigation
+import com.example.autogeotimer.util.GeofenceInitializer
 
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.Dispatchers
 
 import java.io.IOException
 
-
+/*  TODO: Complete geofence activation
+*   complete the logic for entering geofence and starting timing
+*   also fix tick glitch
+* */
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        // ⚠️ TEMPORARY - Clear all old geofences
+        clearAllGeofences()
+
+        // Then register fresh ones
+        GeofenceInitializer.registerAllGeofences(this)
+
         enableEdgeToEdge()
         setContent {
             MaterialTheme {
@@ -33,64 +48,36 @@ class MainActivity : ComponentActivity() {
             }
         }
     }
+
+    private fun clearAllGeofences() {
+        val geoManager = GeofenceManagerClaude(this)
+        geoManager.clearAllGeofences { ok, error ->
+            if (ok) {
+                Log.d("MainActivity", "✓ Cleared all old geofences")
+                GeofenceInitializer.registerAllGeofences(this)
+            } else {
+                Log.e("MainActivity", "Failed to clear geofences: ${error?.message}")
+            }
+        }
+    }
 }
+
+//class MainActivity : ComponentActivity() {
+//    override fun onCreate(savedInstanceState: Bundle?) {
+//        super.onCreate(savedInstanceState)
+//
+//        // Temp
+//        AppDb.clearInstance(this)
+//
+//        GeofenceInitializer.registerAllGeofences(this)
+//        enableEdgeToEdge()
+//        setContent {
+//            MaterialTheme {
+//                MyAppNavigation()
+//            }
+//        }
+//    }
+//}
 
 // USE LOCATION MK42 6HF
 // Set a timer on Tiktok
-
-data class Location(val address: String)
-
-
-suspend fun convertAddressToCoordinates (context: Context, address: String): Coordinates? {
-    return withContext (Dispatchers.IO) {
-        try {
-            val geocoder = Geocoder(context)
-            @Suppress("DEPRECATION")
-            val addresses: MutableList<Address>? = geocoder.getFromLocationName(address, 1)
-            addresses?.firstOrNull()?.let {
-                Coordinates(it.latitude, it.longitude)
-            }
-        } catch (e: IOException) {
-            println("Geocoding failed for '$address': ${e.message}")
-            e.printStackTrace()
-            null
-        }
-    }
-}
-
-suspend fun convertPostcodeToAddress (context: Context, postcode: String): Location? {
-    return withContext (Dispatchers.IO) {
-        try {
-            val geocoder = Geocoder(context)
-            @Suppress("DEPRECATION")
-            val addresses: MutableList<Address>? = geocoder.getFromLocationName(postcode, 1)
-            addresses?.firstOrNull()?.let { androidAddress ->
-                val fullAddress = (0..androidAddress.maxAddressLineIndex)
-                    .mapNotNull { i -> androidAddress.getAddressLine(i) }
-                    .joinToString(separator = "\n")
-
-                if (fullAddress.isNotBlank()) {
-                    Location(fullAddress)
-                } else {
-                    null
-                }
-
-            }
-        } catch (e: IOException) {
-            println("Geocoding failed for '$postcode': ${e.message}")
-            e.printStackTrace()
-            null
-        }
-    }
-}
-
-
-object AppDestinations {
-    const val HOME_SCREEN = "Home"
-    const val INPUT_CHOICE_SCREEN = "InputChoice"
-    const val USE_LOCATION_SCREEN = "UseLocation"
-    const val INPUT_ADDRESS_SCREEN = "InputAddress"
-    const val SHOW_COORDINATES_SCREEN = "ShowCoordinates"
-    const val TIMER_SCREEN = "TimerScreen"
-    // Add more routes for other features
-}

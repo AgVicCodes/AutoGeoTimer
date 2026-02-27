@@ -1,19 +1,31 @@
 import com.android.build.gradle.internal.utils.isKspPluginApplied
+import java.util.Properties
+
 
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
-    id("com.google.devtools.ksp") version "2.0.20-1.0.24" // # To Match Kotlin Version
+    id("com.google.devtools.ksp") version "2.0.21-1.0.28" // # To Match Kotlin Version
 //    alias(libs.plugins.ksp)
 //    id("com.android.application")
 //    kotlin("android")
     // kotlin("kapt")
 }
 
+val localProps = Properties().apply {
+    val f = rootProject.file("local.properties")
+    if (f.exists()) load(f.inputStream())
+}
+
 android {
     namespace = "com.example.autogeotimer"
     compileSdk = 35
+
+    buildFeatures {
+        compose = true
+        buildConfig = true
+    }
 
     defaultConfig {
         applicationId = "com.example.autogeotimer"
@@ -23,6 +35,12 @@ android {
         versionName = "1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+
+        buildConfigField(
+            "String",
+            "GOOGLE_GEOCODING_API_KEY",
+            "\"${localProps.getProperty("GOOGLE_GEOCODING_API_KEY", "")}\""
+        )
     }
 
     buildTypes {
@@ -40,9 +58,6 @@ android {
     }
     kotlinOptions {
         jvmTarget = "11"
-    }
-    buildFeatures {
-        compose = true
     }
 }
 
@@ -86,6 +101,15 @@ dependencies {
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-play-services:1.7.3")
 
 //    Room Modules
-    implementation("androidx.room:room-ktx:2.6.1")
-    ksp("androidx.room:room-compiler:2.6.1")
+    val room_version = "2.8.4"
+    implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.7.0")
+    implementation("androidx.room:room-runtime:${room_version}")
+    implementation("androidx.room:room-ktx:${room_version}")
+    ksp("androidx.room:room-compiler:${room_version}")
+
+//    Retrofit and Moshi
+    implementation("com.squareup.retrofit2:retrofit:2.11.0")
+    implementation("com.squareup.retrofit2:converter-moshi:2.11.0")
+    implementation("com.squareup.moshi:moshi-kotlin:1.15.1")
+    implementation("com.squareup.okhttp3:logging-interceptor:4.12.0") // debug logging
 }

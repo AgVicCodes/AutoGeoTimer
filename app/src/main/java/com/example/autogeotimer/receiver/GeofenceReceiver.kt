@@ -12,9 +12,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.CoroutineScope
 
-import androidx.core.content.edit
 import androidx.core.content.ContextCompat
-import androidx.core.util.TimeUtils.formatDuration
 
 import com.google.android.gms.location.Geofence
 import com.google.android.gms.location.GeofencingEvent
@@ -25,7 +23,7 @@ import com.example.autogeotimer.data.db.AppDb
 import com.example.autogeotimer.data.db.dao.LocationDao
 import com.example.autogeotimer.data.repo.SessionRepository
 
-class GeofenceReceiverClaude : BroadcastReceiver() {
+class GeofenceReceiver : BroadcastReceiver() {
 
     companion object {
         private const val TAG = "GeofenceReceiver"
@@ -78,6 +76,7 @@ class GeofenceReceiverClaude : BroadcastReceiver() {
                     "Wait 5 min to confirm stay"
                 )
 
+//                Commented for ConfirmLocation Geofence registration
                 launchTimerActivity(context, locationId, locationName)
             }
 
@@ -134,7 +133,8 @@ class GeofenceReceiverClaude : BroadcastReceiver() {
                 }
 
                 // Mark as exit.
-                // TODO: Check if this correct or to remove periods (.)
+                // Check if this correct or to remove periods (.)
+                // Not using this anymore :(
 //                prefs.edit {
 //                    remove(KEY_ENTER_TIME + locationId)
 //                        .remove(KEY_DWELLING + locationId)
