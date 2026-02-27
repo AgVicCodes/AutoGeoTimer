@@ -1,11 +1,6 @@
 package com.example.autogeotimer.ui
 
 
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.setValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.mutableLongStateOf
-
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.ViewModelProvider
@@ -17,6 +12,11 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.MutableStateFlow
+
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.mutableLongStateOf
 
 import com.example.autogeotimer.data.db.entities.Session
 import com.example.autogeotimer.data.repo.SessionRepository
@@ -33,11 +33,11 @@ class TimerViewModel(
     var isDwelling by mutableStateOf(false)
         private set
 
-    init {
-        viewModelScope.launch {
-            repo.startSession(locationId)
-        }
-    }
+//    init {
+//        viewModelScope.launch {
+//            repo.startSession(locationId)
+//        }
+//    }
 
     private val _state = MutableStateFlow(TimerUi())
     val state: StateFlow<TimerUi> = _state

@@ -17,7 +17,7 @@ class GeofenceManagerClaude(private val context: Context) {
         PendingIntent.getBroadcast(
             context, 0,
             Intent(context, GeofenceReceiverClaude::class.java),
-            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_MUTABLE
         )
 
     fun buildRequest(id: String, lat: Double, lng:Double, radiusM: Float): GeofencingRequest {

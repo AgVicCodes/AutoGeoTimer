@@ -4,7 +4,7 @@ plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
-    id("com.google.devtools.ksp") version "2.0.20-1.0.24" // # To Match Kotlin Version
+    id("com.google.devtools.ksp") version "2.0.21-1.0.28" // # To Match Kotlin Version
 //    alias(libs.plugins.ksp)
 //    id("com.android.application")
 //    kotlin("android")
@@ -87,5 +87,6 @@ dependencies {
 
 //    Room Modules
     implementation("androidx.room:room-ktx:2.6.1")
+    implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.7.0")
     ksp("androidx.room:room-compiler:2.6.1")
 }

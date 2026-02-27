@@ -15,6 +15,7 @@ import androidx.activity.compose.setContent
 import androidx.compose.material3.MaterialTheme
 
 import com.example.autogeotimer.domain.Coordinates
+import com.example.autogeotimer.domain.Location
 import com.example.autogeotimer.ui.MyAppNavigation
 
 import kotlinx.coroutines.withContext
@@ -37,52 +38,6 @@ class MainActivity : ComponentActivity() {
 
 // USE LOCATION MK42 6HF
 // Set a timer on Tiktok
-
-data class Location(val address: String)
-
-
-suspend fun convertAddressToCoordinates (context: Context, address: String): Coordinates? {
-    return withContext (Dispatchers.IO) {
-        try {
-            val geocoder = Geocoder(context)
-            @Suppress("DEPRECATION")
-            val addresses: MutableList<Address>? = geocoder.getFromLocationName(address, 1)
-            addresses?.firstOrNull()?.let {
-                Coordinates(it.latitude, it.longitude)
-            }
-        } catch (e: IOException) {
-            println("Geocoding failed for '$address': ${e.message}")
-            e.printStackTrace()
-            null
-        }
-    }
-}
-
-suspend fun convertPostcodeToAddress (context: Context, postcode: String): Location? {
-    return withContext (Dispatchers.IO) {
-        try {
-            val geocoder = Geocoder(context)
-            @Suppress("DEPRECATION")
-            val addresses: MutableList<Address>? = geocoder.getFromLocationName(postcode, 1)
-            addresses?.firstOrNull()?.let { androidAddress ->
-                val fullAddress = (0..androidAddress.maxAddressLineIndex)
-                    .mapNotNull { i -> androidAddress.getAddressLine(i) }
-                    .joinToString(separator = "\n")
-
-                if (fullAddress.isNotBlank()) {
-                    Location(fullAddress)
-                } else {
-                    null
-                }
-
-            }
-        } catch (e: IOException) {
-            println("Geocoding failed for '$postcode': ${e.message}")
-            e.printStackTrace()
-            null
-        }
-    }
-}
 
 
 object AppDestinations {

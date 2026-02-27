@@ -37,12 +37,11 @@ import androidx.core.content.ContextCompat
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.compose.rememberLauncherForActivityResult
 
-import com.example.autogeotimer.Location
+import com.example.autogeotimer.domain.Location
 import com.example.autogeotimer.AppDestinations
 import com.example.autogeotimer.domain.Coordinates
 import com.example.autogeotimer.domain.GeocodingResult
-import com.example.autogeotimer.convertPostcodeToAddress
-import com.example.autogeotimer.convertAddressToCoordinates
+import com.example.autogeotimer.util.*
 import com.example.autogeotimer.data.geofencing.GeofenceManagerClaude
 
 import kotlinx.coroutines.delay
@@ -50,7 +49,22 @@ import kotlinx.coroutines.launch
 
 import androidx.navigation.NavController
 import androidx.navigation.ActivityNavigatorExtras
+import androidx.navigation.compose.rememberNavController
 
+@Preview(showBackground = true)
+@Composable
+fun ShowCoordinatesScreenPreview() {
+
+    var navController = rememberNavController()
+
+    MaterialTheme {
+        ShowCoordinatesScreen(
+            postcode = "LU1 0JB",
+            navController = navController,
+            onNavigateBack = {}
+        )
+    }
+}
 
 @Composable
 fun ShowCoordinatesScreen(
@@ -75,7 +89,7 @@ fun ShowCoordinatesScreen(
         isLoading = true
 
         coroutineScope.launch {
-            locationResult = convertAddressToCoordinates(context, postcode)
+            locationResult = convertPostcodeToCoordinates(context, postcode)
             addressString = convertPostcodeToAddress(context, postcode)
             isLoading = false
         }
@@ -83,15 +97,14 @@ fun ShowCoordinatesScreen(
         // geocodingApiResult = convertAddressToCoordinatesDetailed(context, postcode) // Your actual geocoding function
         // --- Placeholder for your geocoding function call ---
 
-        delay(1000) // Simulate network delay
+//        delay(1000) // Simulate network delay
 
-        if (postcode.equals("error", ignoreCase = true)) {
-            geocodingApiResult = GeocodingResult.Error("Simulated geocoding error for '$postcode'")
+        geocodingApiResult = if (postcode.equals("error", ignoreCase = true)) {
+            GeocodingResult.Error("Simulated geocoding error for '$postcode'")
         } else if (postcode.equals("Not found", ignoreCase = true)) {
-            geocodingApiResult = GeocodingResult.NotFound
+            GeocodingResult.NotFound
         } else {
-            geocodingApiResult =
-                GeocodingResult.Success(Coordinates(51.5074, 0.1278)) // Dummy success
+            GeocodingResult.Success(Coordinates(51.5074, 0.1278)) // Dummy success
         }
         // --- End Placeholder ---
         isLoading = false
@@ -110,7 +123,7 @@ fun ShowCoordinatesScreen(
             onClick = {
                 isLoading = true
                 coroutineScope.launch {
-                    locationResult = convertAddressToCoordinates(context, postcode)
+                    locationResult = convertPostcodeToCoordinates(context, postcode)
                     addressString = convertPostcodeToAddress(context, postcode)
                     isLoading = false
                 }
@@ -120,13 +133,14 @@ fun ShowCoordinatesScreen(
             Text("Convert Address")
         }
 
+        // Relaunch and change coordinates to correct results after
         if (isLoading) {
             CircularProgressIndicator(color = Color(0xFF6F009D))
         } else {
             when (val result = geocodingApiResult) {
                 is GeocodingResult.Success -> {
                     Text("Latitude: ${result.coordinates.latitude}")
-                    Text("Longitude: ${result.coordinates.longitude}")
+                    Text("Longitude: ${(result.coordinates.longitude)}")
                 }
                 is GeocodingResult.Error -> {
                     Text("Error: ${result.message}", color = MaterialTheme.colorScheme.error)
@@ -209,8 +223,9 @@ fun ShowCoordinatesScreen(
 
         Button(
             onClick = {
-                sessionId = System.currentTimeMillis()
-                navController.navigate("${AppDestinations.TIMER_SCREEN}/$sessionId")
+                val locationName = "Work"
+                var locationId = System.currentTimeMillis()
+                navController.navigate("${AppDestinations.TIMER_SCREEN}/$locationId/$locationName")
             }
         ) {
             Text("Go to timer screen")

@@ -45,9 +45,11 @@ fun InputAddressPage(
                 .padding(0.dp, 16.dp),
             singleLine = true
         )
+//        TODO: Make this write postcode to storage
         Button(
             onClick = {
                 navController.navigate("${AppDestinations.SHOW_COORDINATES_SCREEN}/$postcodeState")
+
             },
             modifier = Modifier
                 .fillMaxWidth()

@@ -14,15 +14,15 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import kotlinx.coroutines.delay
 
 
-data class TimerUi(
-    val locationName: String = "",
-    val startMs: Long? = null,      // Initially null until Dwell confirmed
-    val exitMs: Long? = null,
-    val isDwelling: Boolean = false, // sets to true once startMs is set
-    val elapsedSec: Long = 0L,      // UI counter
-    val isRunning: Boolean = true,
-    val error: String? = null
-)
+//data class TimerUi(
+//    val locationName: String = "",
+//    val startMs: Long? = null,      // Initially null until Dwell confirmed
+//    val exitMs: Long? = null,
+//    val isDwelling: Boolean = false, // sets to true once startMs is set
+//    val elapsedSec: Long = 0L,      // UI counter
+//    val isRunning: Boolean = true,
+//    val error: String? = null
+//)
 
 
 @Preview(showBackground = true)

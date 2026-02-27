@@ -35,6 +35,11 @@ import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.material3.LinearProgressIndicator
+import androidx.compose.runtime.collectAsState
+import androidx.compose.ui.platform.LocalContext
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.autogeotimer.data.db.AppDb
+import com.example.autogeotimer.data.repo.SessionRepository
 
 import kotlinx.coroutines.delay
 import kotlin.time.Duration.Companion.seconds
@@ -70,23 +75,44 @@ fun TimerScreen(
     placeName: String,
     onNavigateBack: () -> Unit
 ) {
-    var isRunning: Boolean by remember { mutableStateOf(false) }
-    var isDwelling: Boolean by remember { mutableStateOf(false) }
-    var elapsedSeconds: Long by remember { mutableLongStateOf(135L) }
-    var status: String by remember { mutableStateOf("Waiting for confirmation...") }
+    val context = LocalContext.current
+
+    // Initialising ViewModel with factory
+    val viewModel: TimerViewModel = viewModel(
+        factory = TimerVmFactory(
+            repo = SessionRepository(AppDb.getInstance(context).sessionDao()),
+            locationId = locationId
+        )
+    )
+
+    // Collect state from ViewModel
+    val state by viewModel.state.collectAsState()
+
+//    var isRunning: Boolean by remember { mutableStateOf(false) }
+//    var isDwelling: Boolean by remember { mutableStateOf(false) }
+//    var elapsedSec: Long by remember { mutableLongStateOf(135L) }
+//    var status: String by remember { mutableStateOf("Waiting for confirmation...") }
 
     // Timer effect
-    LaunchedEffect(isRunning) {
-        while (isRunning) {
+    LaunchedEffect(state.isRunning) {
+        while (state.isRunning) {
             delay(1.seconds)
-            elapsedSeconds++
-
-            // Auto-confirm dwelling after 5 minutes
-            if (elapsedSeconds >= 300 && !isDwelling) {
-                isDwelling = true
-                status = "Stay confirmed - Timer active"
-            }
+            viewModel.tick()
+//            elapsedSec++
+//
+//            // Auto-confirm dwelling after 5 minutes
+//            if (state.elapsedSec >= 300 && !isDwelling) {
+//                isDwelling = true
+//                status = "Stay confirmed - Timer active"
+//            }
         }
+    }
+
+    // To determine actual status messages
+    val status = when {
+        state.error != null -> state.error!!
+        state.isDwelling -> "Stay confirmed - Timer active"
+        else -> "Waiting for confirmation..."
     }
 
     Column (
@@ -97,7 +123,7 @@ fun TimerScreen(
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Text(
-            text = placeName,
+            text = state.locationName.ifEmpty { placeName },
             fontWeight = FontWeight.Bold,
             style = MaterialTheme.typography.bodyLarge
         )
@@ -107,30 +133,30 @@ fun TimerScreen(
         Text(
             text = status,
             style = MaterialTheme.typography.bodyLarge,
-            color = if (isDwelling) Color.Green else Color.Gray
+            color = if (state.isDwelling) Color.Green else Color.Gray
         )
 
         Spacer(Modifier.height(32.dp))
 
         // Timer display
         Text(
-            text = formatTime(elapsedSeconds),
+            text = formatTime(state.elapsedSec),
             fontSize = 64.sp,
             fontWeight = FontWeight.Bold,
-            color = if (isDwelling) MaterialTheme.colorScheme.primary else Color.Gray
+            color = if (state.isDwelling) MaterialTheme.colorScheme.primary else Color.Gray
         )
 
         Spacer(Modifier.height(16.dp))
 
-        if (!isDwelling) {
+        if (!state.isDwelling) {
             LinearProgressIndicator(
-                progress = { (elapsedSeconds / 300f).coerceIn(0f, 1f) },
+                progress = { (state.elapsedSec / 300f).coerceIn(0f, 1f) },
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(8.dp)
             )
             Text(
-                text = "${300 - elapsedSeconds}s until stay confirmed",
+                text = "${(300 - state.elapsedSec).coerceAtLeast(0)}s until stay confirmed",
                 style = MaterialTheme.typography.bodySmall,
                 modifier = Modifier.padding(top = 4.dp),
                 color = Color.Gray
@@ -144,17 +170,21 @@ fun TimerScreen(
             horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             Button(
-                onClick = { isRunning = !isRunning },
+                onClick = { viewModel.togglePause() },
                 modifier = Modifier.weight(1f),
                 colors = ButtonDefaults.buttonColors(
-                    containerColor = if (isRunning) Color.Red else Color(0XFF237D1F)
+                    containerColor = if (state.isRunning) Color.Red else Color(0XFF237D1F)
                 )
             ) {
-                Text(if (isRunning) "Pause" else "Resume")
+                Text(if (state.isRunning) "Pause" else "Resume")
             }
 
             OutlinedButton(
-                onClick = onNavigateBack,
+                onClick = {
+                    // TODO: Fix Broken Process
+                    viewModel.endSession(locationId)
+                    onNavigateBack()
+                },
                 modifier = Modifier.weight(1f),
                 colors = ButtonDefaults.outlinedButtonColors(
                     contentColor = Color.Red
@@ -182,11 +212,11 @@ fun TimerScreen(
                     style = MaterialTheme.typography.bodySmall
                 )
                 Text(
-                    "Status: ${if (isRunning) "Active" else "Paused"}",
+                    "Status: ${if (state.isRunning) "Active" else "Paused"}",
                     style = MaterialTheme.typography.bodySmall
                 )
                 Text(
-                    "Dwelling: ${if (isDwelling) "Yes" else "No (${elapsedSeconds}/300s)"}",
+                    "Dwelling: ${if (state.isDwelling) "Yes" else "No (${state.elapsedSec}/300s)"}",
                     style = MaterialTheme.typography.bodySmall
                 )
             }
