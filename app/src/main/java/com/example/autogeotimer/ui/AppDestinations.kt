@@ -9,6 +9,6 @@ object AppDestinations {
     const val USE_LOCATION_SCREEN = "UseLocation"
     const val INPUT_ADDRESS_SCREEN = "InputAddress"
     const val SHOW_COORDINATES_SCREEN = "ShowCoordinates"
-    const val SES_LOC_HISTORY_SCREEN = "SessionLocationHistory"
+//    const val SESH_LOC_HISTORY_SCREEN = "SessionLocationHistory"
     // Add more routes for other features
 }

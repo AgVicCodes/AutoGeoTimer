@@ -46,7 +46,7 @@ import androidx.navigation.NavController
 import com.example.autogeotimer.data.db.AppDb
 import com.example.autogeotimer.data.geocoding.GeocodingService
 import com.example.autogeotimer.domain.Location
-import com.example.autogeotimer.util.*
+//import com.example.autogeotimer.util.*
 import com.example.autogeotimer.data.location.LocationProvider
 import com.example.autogeotimer.data.geofencing.GeofenceManagerClaude
 import com.example.autogeotimer.data.repo.LocationRepository
@@ -271,13 +271,18 @@ fun ConfirmLocationScreen(
                                         )
                                         geofenceReady = true
                                         "✓ Location saved & geofence active!"
+
+                                        navController.navigate("${AppDestinations.TIMER_SCREEN}/$placeId/$locationName") {
+                                            popUpTo(AppDestinations.USE_LOCATION_SCREEN) { inclusive = true }
+                                        }
+
                                     } else {
                                         android.util.Log.e(
-                                            "ConfirmLocation",
-                                            "✗ Geofence registration failed: ${error?.message}"
+                                            "✗ Geofence registration failed: ${error?.message}",
+                                            "ConfirmLocation"
                                         )
                                         "Failed: ${error?.message}"
-                                    }
+                                    }.toString()
 //                                "Geofence Added Successfully!"
 //
 //                                    else "Failed: ${error?.message}"
@@ -319,14 +324,14 @@ fun ConfirmLocationScreen(
 
             Spacer(modifier = Modifier.height(32.dp))
 
-            Button(
-                onClick = {
-                    navController.navigate("TimerScreen/${placeId}/${locationName}")
-                },
-                enabled = coords != null && geofenceReady
-            ) {
-                Text("Navigate to timer screen")
-            }
+//            Button(
+//                onClick = {
+//                    navController.navigate("TimerScreen/${placeId}/${locationName}")
+//                },
+//                enabled = coords != null && geofenceReady
+//            ) {
+//                Text("Navigate to timer screen")
+//            }
 
             Text("TimerScreen/${placeId}/${locationName}")
 
