@@ -20,24 +20,17 @@ import androidx.compose.runtime.mutableLongStateOf
 
 import com.example.autogeotimer.data.db.entities.Session
 import com.example.autogeotimer.data.repo.SessionRepository
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.stateIn
 
+suspend fun SessionRepository.getActiveSession(locationId: String): Session? {
+    return getLocationSession(locationId).firstOrNull { it.exitTime == null }
+}
 
 class TimerViewModel(
     private val repo: SessionRepository,
     private val locationId: String
 ) : ViewModel() {
-
-//    var elapsedSeconds by mutableLongStateOf(0L)
-//        private set
-//
-//    var isDwelling by mutableStateOf(false)
-//        private set
-//
-//    init {
-//        viewModelScope.launch {
-//            repo.startSession(locationId)
-//        }
-//    }
 
     private val _state = MutableStateFlow(TimerUi())
     val state: StateFlow<TimerUi> = _state
@@ -47,6 +40,30 @@ class TimerViewModel(
     /**
      * To Load active sessions for this location and start live timer updates
      * */
+
+    val activeSession: StateFlow<Session?> =
+        repo.getActiveSessionFlow(locationId) // Ensure your repo provides a Flow
+            .stateIn(
+                scope = viewModelScope,
+                started = SharingStarted.WhileSubscribed(5000),
+                initialValue = null
+            )
+
+// //    Method 2 for calling repo.getActiveSessions(locationId)
+//    private val _activeSession = MutableStateFlow<Session?>(null)
+//    val activeSession: StateFlow<Session?> = _activeSession
+//
+//    private fun fetchSession() {
+//        viewModelScope.launch {
+//            // Safe to call suspend functions here inside a coroutine scope
+//            _activeSession.value = repo.getActiveSession(locationId)
+//        }
+//    }
+//
+//    init {
+//        fetchSession()
+//    }
+
 
     fun load(locationId: String, locationName: String) = viewModelScope.launch(Dispatchers.IO) {
         val sessions = repo.getLocationSession(locationId)
@@ -73,7 +90,7 @@ class TimerViewModel(
     }
 
     fun tick() = _state.update { st ->
-        st.copy(elapsedSec = st.elapsedSec + 1 )
+        st.copy(elapsedSec = st.elapsedSec + 1)
     }
 
     private fun startLiveTimer() {
@@ -125,9 +142,9 @@ class TimerViewModel(
  * Extension function to get active session for a location
  */
 
-suspend fun SessionRepository.getActiveSession(locationId: String): Session? {
-    return getLocationSession(locationId).firstOrNull { it.exitTime == null }
-}
+//suspend fun SessionRepository.getActiveSession(locationId: String): Session? {
+//    return getLocationSession(locationId).firstOrNull { it.exitTime == null }
+//}
 
 class TimerVmFactory(
     private val repo: SessionRepository,

@@ -10,11 +10,11 @@ import androidx.compose.ui.text.font.FontWeight
 
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.remember
+//import androidx.compose.runtime.remember
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.mutableLongStateOf
+//import androidx.compose.runtime.mutableStateOf
+//import androidx.compose.runtime.mutableLongStateOf
 
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.BorderStroke
@@ -36,13 +36,16 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.mutableLongStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.autogeotimer.data.db.AppDb
-import com.example.autogeotimer.data.repo.SessionRepository
-
 import kotlinx.coroutines.delay
 import kotlin.time.Duration.Companion.seconds
+import com.example.autogeotimer.data.repo.SessionRepository
+
 
 private fun formatTime(seconds: Long): String {
     val secs = seconds % 60
@@ -74,7 +77,8 @@ fun TimerScreenClaudePreview() {
 fun TimerScreen(
     locationId: String,
     placeName: String,
-    onNavigateBack: () -> Unit
+    onNavigateBack: () -> Unit,
+//    viewModel: TimerViewModel
 ) {
     val context = LocalContext.current
 
@@ -89,17 +93,16 @@ fun TimerScreen(
     // Collect state from ViewModel
     val state by viewModel.state.collectAsState()
 
-    // Timer effect
-    // Fix timer screen tick
-    LaunchedEffect(state.isRunning) {
-//        while (state.isRunning) {
-//            delay(1.seconds)
-//            viewModel.tick()
-//        }
-        viewModel.load(
-            locationId = locationId,
-            locationName = placeName
-        )
+    var elapsedTimeMs by remember { mutableLongStateOf(0L) }
+
+    LaunchedEffect(state?.startMs) {
+        val enterTime = state?.startMs
+        if (enterTime != null) {
+            while (true) {
+                elapsedTimeMs = System.currentTimeMillis() - enterTime
+                delay(1000L) // Updating view every second
+            }
+        }
     }
 
     // To determine actual status messages
@@ -175,7 +178,7 @@ fun TimerScreen(
 
             OutlinedButton(
                 onClick = {
-                    // TODO: Fix Broken Process
+                    // // T0D0: Fix Broken Process ✅
                     viewModel.endSession(locationId)
                     onNavigateBack()
                 },

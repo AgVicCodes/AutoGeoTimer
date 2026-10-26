@@ -6,6 +6,7 @@ import android.util.Log
 import android.content.Intent
 import android.content.Context
 import android.content.BroadcastReceiver
+import androidx.core.app.NotificationManagerCompat
 
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.Dispatchers
@@ -22,6 +23,7 @@ import com.example.autogeotimer.util.Notifier
 import com.example.autogeotimer.data.db.AppDb
 import com.example.autogeotimer.data.db.dao.LocationDao
 import com.example.autogeotimer.data.repo.SessionRepository
+import com.example.autogeotimer.ui.TimerActivityClaude
 
 class GeofenceReceiver : BroadcastReceiver() {
 
@@ -49,11 +51,17 @@ class GeofenceReceiver : BroadcastReceiver() {
         val sessionRepo = SessionRepository(db.sessionDao())
         val locationDao = db.locationDao()
 
-        geofences.forEach { geofence ->
+        val pending = goAsync()
             scope.launch {
-                handleTransition(context, geofence.requestId, transition, sessionRepo, locationDao)
+                try {
+                    geofences.forEach { geofence ->
+                        handleTransition(context, geofence.requestId, transition, sessionRepo, locationDao)
+                    }
+                } finally {
+                    pending.finish()
+                }
             }
-        }
+
     }
 
     private suspend fun handleTransition(
@@ -68,28 +76,42 @@ class GeofenceReceiver : BroadcastReceiver() {
 
         when (transition) {
             Geofence.GEOFENCE_TRANSITION_ENTER -> {
+
                 Log.i(TAG, "ENTER: $locationId ($locationName)")
+
+                val timerIntent = Intent(context, TimerActivityClaude::class.java).apply {
+                    putExtra("PLACE_ID", locationId)
+                    putExtra("PLACE_NAME", locationName)
+                    flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
+                }
+
+                val sessionId = sessionRepo.startSession(locationId)
+
+                Log.i(TAG, "Started session #$sessionId for $locationName")
+
+                Log.d("Notifier", "enabled=${NotificationManagerCompat.from(context).areNotificationsEnabled()}")
 
                 Notifier.notify(
                     context,
                     "Entered $locationName",
-                    "Wait 5 min to confirm stay"
+                    "Timer starting... Wait 5 min to confirm stay",
+//                    "Tap to open timer",
+                    tapIntent = timerIntent
                 )
 
 //                Commented for ConfirmLocation Geofence registration
-                launchTimerActivity(context, locationId, locationName)
             }
 
             Geofence.GEOFENCE_TRANSITION_DWELL -> {
                 Log.i(TAG, "Dwell Confirmed: $locationId ($locationName)")
+
+                sessionRepo.confirmDwell(locationId)
 
                 Notifier.notify(
                     context,
                     "Stay Confirmed at $locationName",
                     "Stayed over 5 minutes, timing now active"
                 )
-
-                // TODO: Update session on Room DB to mark dwelling confirmed
             }
 
             Geofence.GEOFENCE_TRANSITION_EXIT -> {

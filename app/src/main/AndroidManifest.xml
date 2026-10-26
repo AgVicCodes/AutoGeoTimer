@@ -46,6 +46,10 @@
 <!--            android:exported="true">-->
 <!--        </receiver>-->
 
+        <receiver
+            android:name=".receiver.GeofenceReceiver"
+            android:exported="false" />
+
         <service
             android:name=".service.GeofenceTransitionsIntentService"
             android:exported="true"

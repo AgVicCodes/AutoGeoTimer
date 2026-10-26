@@ -5,6 +5,7 @@ import androidx.room.Query
 import androidx.room.Insert
 import androidx.room.Update
 import com.example.autogeotimer.data.db.entities.Session
+import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface SessionDao {
@@ -37,6 +38,9 @@ interface SessionDao {
 
     @Query("SELECT * FROM sessions WHERE exitTime IS NULL")
     suspend fun getActiveSessions(): List<Session>
+
+    @Query("SELECT * FROM sessions WHERE locationId = :locationId AND exitTime IS NULL LIMIT 1")
+    fun getActiveSessionFlow(locationId: String): Flow<Session?>
 
     @Query("""
         UPDATE sessions

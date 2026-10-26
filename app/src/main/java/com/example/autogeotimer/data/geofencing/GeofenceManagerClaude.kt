@@ -9,12 +9,15 @@ import android.content.Context
 import android.app.PendingIntent
 
 import android.annotation.SuppressLint
+import android.content.pm.PackageManager
+import androidx.core.content.ContextCompat
 
 import com.google.android.gms.location.Geofence
 import com.google.android.gms.location.GeofencingRequest
 import com.google.android.gms.location.LocationServices
 
 import com.example.autogeotimer.receiver.GeofenceReceiver
+import java.util.jar.Manifest
 
 class GeofenceManagerClaude(private val context: Context) {
 
@@ -25,6 +28,7 @@ class GeofenceManagerClaude(private val context: Context) {
             action = "ACTION_GEOFENCE_EVENT" // Use a custom action string
             setPackage(context.packageName)  // <--- ADD THIS LINE
         }
+
         val flags = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_MUTABLE
         } else {

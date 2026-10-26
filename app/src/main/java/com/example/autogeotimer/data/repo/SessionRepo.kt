@@ -3,6 +3,7 @@ package com.example.autogeotimer.data.repo
 
 import com.example.autogeotimer.data.db.dao.SessionDao
 import com.example.autogeotimer.data.db.entities.Session
+import kotlinx.coroutines.flow.Flow
 
 class SessionRepository (private val sessionDao: SessionDao) {
 
@@ -27,6 +28,10 @@ class SessionRepository (private val sessionDao: SessionDao) {
             val durationSeconds: Long = (exitTime - it.enterTime) / 1000
             sessionDao.closeSession(locationId, exitTime, durationSeconds)
         }
+    }
+
+    fun getActiveSessionFlow(locationId: String): Flow<Session?> {
+        return sessionDao.getActiveSessionFlow(locationId)
     }
 
     suspend fun getLocationSession(locationId: String) = sessionDao.getByLocation(locationId)

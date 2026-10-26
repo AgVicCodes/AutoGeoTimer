@@ -6,6 +6,8 @@ import android.util.Log
 import android.content.Context
 import android.app.NotificationManager
 import android.app.NotificationChannel
+import android.app.PendingIntent
+import android.content.Intent
 
 import com.example.autogeotimer.R
 
@@ -26,20 +28,28 @@ object Notifier {
     }
 
 //    @RequiresPermission(Manifest.permission.POST_NOTIFICATIONS)
-    fun notify(context: Context, title: String, text: String) {
+    fun notify(context: Context, title: String, text: String, tapIntent: Intent? = null) {
         ensureChannel(context)
 
-        val n = NotificationCompat.Builder(context, CH_ID)
+        val builder = NotificationCompat.Builder(context, CH_ID)
             .setSmallIcon(R.drawable.ic_stat_location) // App icon
             .setContentTitle(title)
             .setContentText(text)
             .setAutoCancel(true)
-            .build()
+//            .build()
+
+        tapIntent?.let {
+            val pi = PendingIntent.getActivity(
+                context, System.currentTimeMillis().toInt(), it,
+                PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+            )
+            builder.setContentIntent(pi)
+        }
 
         try {
             NotificationManagerCompat.from(context).notify(
                 (System.currentTimeMillis() % Int.MAX_VALUE)
-                    .toInt(), n)
+                    .toInt(), builder.build())
         } catch (se: SecurityException) {
 //            In case OEMs still throw despite the check
             Log.e("Notifier", "Notify failed: ${se.message}", se)

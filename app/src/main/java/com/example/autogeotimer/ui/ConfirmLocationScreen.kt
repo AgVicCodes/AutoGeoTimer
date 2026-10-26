@@ -3,6 +3,7 @@ package com.example.autogeotimer.ui
 
 import android.Manifest
 import android.content.pm.PackageManager
+import android.os.Build
 
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.Modifier
@@ -110,6 +111,17 @@ fun ConfirmLocationScreen(
     val db = remember { AppDb.getInstance(context) }
     val locationRepo = remember { LocationRepository(db.locationDao()) }
 
+    val bgLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) { granted ->
+        scope.launch {
+            snackBar.showSnackbar(
+                if (granted) "Background location enabled"
+                else "Choose 'Allow all the time' or geofences won't fire when the app is closed"
+            )
+        }
+    }
+
     val locationPermissionLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.RequestPermission()
     ) { granted ->
@@ -121,6 +133,14 @@ fun ConfirmLocationScreen(
                 onLoading = { isLoadingLocation = it },
                 onError = { scope.launch { snackBar.showSnackbar(it) } }
             )
+
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q &&
+                ContextCompat.checkSelfPermission(
+                    context, Manifest.permission.ACCESS_BACKGROUND_LOCATION
+                ) != PackageManager.PERMISSION_GRANTED
+            ) {
+                bgLauncher.launch(Manifest.permission.ACCESS_BACKGROUND_LOCATION)
+            }
         } else {
             scope.launch { snackBar.showSnackbar("Location permission denied.") }
         }
@@ -141,7 +161,7 @@ fun ConfirmLocationScreen(
             Spacer(Modifier.height(12.dp))
 
             Button(
-                onClick = { locationPermissionLauncher.launch(Manifest.permission.ACCESS_FINE_LOCATION) },
+                onClick = { locationPermissionLauncher.launch(Manifest.permission.ACCESS_FINE_LOCATION); locationPermissionLauncher.launch(Manifest.permission.ACCESS_BACKGROUND_LOCATION) },
                 enabled = !isLoadingLocation,
                 modifier = Modifier.fillMaxWidth()
             ) {
